@@ -1,0 +1,27 @@
+# Copy to dev.tfvars and fill in. dev.tfvars is gitignored.
+#
+#   cp dev.tfvars.example dev.tfvars
+
+environment = "dev"
+aws_region  = "us-east-1"
+
+# Apex domain for this environment. Throwaway domain for now; swap for the
+# real one at cutover. Must be a bare domain, no scheme, no trailing dot.
+domain_name = "CHANGE-ME.example.com"
+
+# Networking. One NAT keeps dev cheap (~$32/mo instead of ~$65).
+vpc_cidr           = "10.0.0.0/16"
+az_count           = 2
+single_nat_gateway = true
+
+# Application
+app_port          = 8080
+health_check_path = "/"
+
+# Set to true only after the domain's nameservers point at the Route 53 zone
+# (see the route53_nameservers output). Until then ACM cannot validate and the
+# apply will block for 45 minutes before failing.
+validate_certificate = false
+
+# Turn on once the ALB exists and applies cleanly.
+enable_alb_access_logs = false
