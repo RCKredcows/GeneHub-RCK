@@ -1,3 +1,4 @@
+import { ownerLabel } from '../../../config/tenant';
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 interface SireCardData {
@@ -70,7 +71,7 @@ export default function SireCard({ sire, onEdit, onDelete }: SireCardProps) {
         <div className="sires__card-field">
           <span className="sires__card-label">Owner:</span>
           <span className="sires__card-value">
-            {sire.owner_type === 'rck' ? 'RCK Owned' : sire.owner_type === 'customer' ? (sire.customer?.name || 'Customer Owned') : 'Unknown Owner'}
+            {ownerLabel(sire.owner_type, sire.customer?.name)}
           </span>
         </div>
         {sire.registration_number && (

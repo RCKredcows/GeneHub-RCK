@@ -206,7 +206,7 @@ describe('Sires Page', () => {
 
     fireEvent.click(screen.getByText('RCK'))
 
-    expect(setOwnerFilter).toHaveBeenCalledWith('rck')
+    expect(setOwnerFilter).toHaveBeenCalledWith('internal')
   })
 
   it('shows loading overlay when deleting', () => {

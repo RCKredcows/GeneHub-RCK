@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import { Link } from 'react-router-dom'
 import { FiCheckCircle, FiAlertCircle } from 'react-icons/fi'
 import { useSignUpForm } from '../../hooks/useSignUpForm'
@@ -21,8 +22,8 @@ export default function SignUp() {
         <div className="signup__container">
           <div className="signup__logo">
             <img
-              src="/rck_logo_dark_final-2.png"
-              alt="RCK Logo"
+              src={tenant.logoUrl}
+              alt={`${tenant.legalName} logo`}
               className="signup__logo-image"
             />
           </div>
@@ -57,8 +58,8 @@ export default function SignUp() {
       <div className="signup__container">
         <div className="signup__logo">
           <img
-            src="/rck_logo_dark_final-2.png"
-            alt="RCK Logo"
+            src={tenant.logoUrl}
+            alt={`${tenant.legalName} logo`}
             className="signup__logo-image"
           />
         </div>

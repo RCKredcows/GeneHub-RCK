@@ -78,7 +78,7 @@ describe('useFormValidation', () => {
 
       let isValid
       act(() => {
-        isValid = result.current.validateAll({ owner_type: 'rck', customer_id: null })
+        isValid = result.current.validateAll({ owner_type: 'internal', customer_id: null })
       })
 
       expect(isValid).toBe(true)

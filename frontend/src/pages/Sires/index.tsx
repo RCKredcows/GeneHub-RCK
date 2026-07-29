@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import { useState } from 'react';
 import { FiMenu, FiPlus, FiPrinter } from 'react-icons/fi';
 import Sidebar from '../../components/layout/Sidebar';
@@ -155,10 +156,10 @@ export default function Sires({ user }: SiresProps) {
               All
             </button>
             <button
-              className={`filter-tab ${sireList.ownerFilter === 'rck' ? 'filter-tab--active' : ''}`}
-              onClick={() => sireList.setOwnerFilter('rck')}
+              className={`filter-tab ${sireList.ownerFilter === 'internal' ? 'filter-tab--active' : ''}`}
+              onClick={() => sireList.setOwnerFilter('internal')}
             >
-              RCK
+              {tenant.name}
             </button>
             <button
               className={`filter-tab ${sireList.ownerFilter === 'customer' ? 'filter-tab--active' : ''}`}

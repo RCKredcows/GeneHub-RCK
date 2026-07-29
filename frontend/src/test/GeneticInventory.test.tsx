@@ -338,7 +338,7 @@ describe('GeneticInventory Page', () => {
       ...defaultInventoryListReturn,
       inventory: [
         { id: 1, sire_name: 'Bull A', breed: 'Angus', quantity: 10, owner_type: 'customer' },
-        { id: 2, sire_name: 'Bull B', breed: 'Hereford', quantity: 5, owner_type: 'rck' },
+        { id: 2, sire_name: 'Bull B', breed: 'Hereford', quantity: 5, owner_type: 'internal' },
       ],
     } as unknown as ReturnType<typeof useInventoryList>)
 

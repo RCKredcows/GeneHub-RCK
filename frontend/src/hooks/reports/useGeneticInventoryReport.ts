@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import { useState, useCallback } from 'react';
 import { fetchGeneticInventoryPaginated } from '../../api/geneticInventory';
 
@@ -120,8 +121,8 @@ export function useGeneticInventoryReport() {
                     const itemName = isEmbryo
                       ? (item.embryo_name || 'Unknown Embryo')
                       : (item.sire_name || item.sire?.name || 'Unknown Sire');
-                    const ownerName = item.owner_type === 'rck'
-                      ? 'RCK'
+                    const ownerName = item.owner_type === 'internal'
+                      ? tenant.name
                       : (item.customer_name || item.customer?.name || 'Unknown');
                     return `
                       <tr>
@@ -142,7 +143,7 @@ export function useGeneticInventoryReport() {
           `).join('')}
 
           <div class="footer">
-            <p>RCK Genetics - Internal Use Only</p>
+            <p>${tenant.reportFooter}</p>
           </div>
         </body>
       </html>

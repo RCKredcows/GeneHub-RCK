@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FiAlertCircle } from 'react-icons/fi'
@@ -40,8 +41,8 @@ export default function ForgotPassword() {
       <div className="forgot-password__container">
         <div className="forgot-password__logo">
           <img
-            src="/rck_logo_dark_final-2.png"
-            alt="RCK Logo"
+            src={tenant.logoUrl}
+            alt={`${tenant.legalName} logo`}
             className="forgot-password__logo-image"
           />
         </div>

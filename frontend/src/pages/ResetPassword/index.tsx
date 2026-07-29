@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiAlertCircle } from 'react-icons/fi'
@@ -48,8 +49,8 @@ export default function ResetPassword() {
       <div className="reset-password__container">
         <div className="reset-password__logo">
           <img
-            src="/rck_logo_dark_final-2.png"
-            alt="RCK Logo"
+            src={tenant.logoUrl}
+            alt={`${tenant.legalName} logo`}
             className="reset-password__logo-image"
           />
         </div>

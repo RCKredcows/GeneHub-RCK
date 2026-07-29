@@ -1,3 +1,4 @@
+import { tenant } from '../../../config/tenant';
 import { useState, useMemo } from 'react';
 import { FiX, FiTrash2 } from 'react-icons/fi';
 import QuantityEditor from '../../../components/common/QuantityEditor';
@@ -60,7 +61,7 @@ export default function InventoryList({
     if (item.owner_type === 'customer' && item.customer?.name) {
       return item.customer.name;
     }
-    if (item.owner_type === 'rck') return 'RCK';
+    if (item.owner_type === 'internal') return tenant.name;
     if (item.owner_type === 'unknown') return 'Unknown';
     return null;
   };

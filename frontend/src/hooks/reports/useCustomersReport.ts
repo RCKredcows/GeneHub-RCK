@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import { useState, useCallback } from 'react';
 import { fetchCustomersPaginated } from '../../api/customers';
 
@@ -85,7 +86,7 @@ export function useCustomersReport() {
           ` : '<p style="margin-top: 1rem; color: #666;">No customers on file.</p>'}
 
           <div class="footer">
-            <p>RCK Genetics - Internal Use Only</p>
+            <p>${tenant.reportFooter}</p>
           </div>
         </body>
       </html>

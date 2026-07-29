@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import React, { useState, useEffect, useCallback } from 'react';
 import { FiMenu, FiPlus, FiPrinter, FiLogOut } from 'react-icons/fi';
 import Sidebar from '../../components/layout/Sidebar';
@@ -213,11 +214,11 @@ export default function GeneticInventory({ user }: GeneticInventoryProps) {
               All
             </button>
             <button
-              className={`filter-tab ${inventoryList.ownerFilter === 'rck' ? 'filter-tab--active' : ''}`}
-              onClick={() => inventoryList.setOwnerFilter('rck')}
-              title="Show RCK owned inventory"
+              className={`filter-tab ${inventoryList.ownerFilter === 'internal' ? 'filter-tab--active' : ''}`}
+              onClick={() => inventoryList.setOwnerFilter('internal')}
+              title={`Show ${tenant.name} owned inventory`}
             >
-              RCK
+              {tenant.name}
             </button>
             <button
               className={`filter-tab ${inventoryList.ownerFilter === 'customer' ? 'filter-tab--active' : ''}`}

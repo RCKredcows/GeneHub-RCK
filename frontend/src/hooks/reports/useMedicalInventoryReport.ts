@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import { useCallback } from 'react';
 
 interface ReportInventoryItem {
@@ -136,7 +137,7 @@ export function useMedicalInventoryReport(items: ReportInventoryItem[] = [], cat
           `).join('')}
 
           <div class="footer">
-            <p>RCK Genetics - Internal Use Only</p>
+            <p>${tenant.reportFooter}</p>
           </div>
         </body>
       </html>

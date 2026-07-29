@@ -1,3 +1,4 @@
+import { ownerLabel } from '../../../config/tenant';
 import { Link } from 'react-router-dom';
 import { FiEdit2, FiTrash2, FiCalendar, FiLogIn } from 'react-icons/fi';
 import QuantityEditor from '../../../components/common/QuantityEditor';
@@ -178,7 +179,7 @@ export default function InventoryCard({
         <div className="genetic-inventory__card-field">
           <span className="genetic-inventory__card-label">Owner:</span>
           <span className="genetic-inventory__card-value">
-            {item.owner_type === 'rck' ? 'RCK Owned' : item.owner_type === 'customer' ? (item.customer?.name || 'Customer Owned') : 'Unknown Owner'}
+            {ownerLabel(item.owner_type, item.customer?.name)}
           </span>
         </div>
         {isCheckedOut ? (

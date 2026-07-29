@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import { useState, useCallback } from 'react';
 import { fetchSiresPaginated } from '../../api/sires';
 import { fetchCustomers } from '../../api/customers';
@@ -85,8 +86,8 @@ export function useSiresReport() {
               <tbody>
                 ${sires.map(sire => {
                   let ownerName = 'Unknown';
-                  if (sire.owner_type === 'rck') {
-                    ownerName = 'RCK';
+                  if (sire.owner_type === 'internal') {
+                    ownerName = tenant.name;
                   } else if (sire.customer_id) {
                     const customer = customers.find(c => c.id === sire.customer_id);
                     ownerName = customer?.name || 'Unknown';
@@ -110,7 +111,7 @@ export function useSiresReport() {
           ` : '<p style="margin-top: 1rem; color: #666;">No sires on file.</p>'}
 
           <div class="footer">
-            <p>RCK Genetics - Internal Use Only</p>
+            <p>${tenant.reportFooter}</p>
           </div>
         </body>
       </html>

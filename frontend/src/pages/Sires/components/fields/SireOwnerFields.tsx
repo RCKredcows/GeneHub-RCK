@@ -1,3 +1,4 @@
+import { tenant } from '../../../../config/tenant';
 import AsyncSearchableSelect from '../../../../components/common/AsyncSearchableSelect';
 import FieldError from '../../../../components/common/FieldError';
 import { searchCustomers } from '../../../../api/customers';
@@ -31,12 +32,12 @@ export default function SireOwnerFields({ formData, editingSire, selectedCustome
             <input
               type="radio"
               name="owner_type"
-              value="rck"
-              checked={formData.owner_type === 'rck'}
+              value="internal"
+              checked={formData.owner_type === 'internal'}
               onChange={onInputChange}
               className="radio-input"
             />
-            <span>RCK Owned</span>
+            <span>{tenant.name} Owned</span>
           </label>
           <label className="radio-label">
             <input

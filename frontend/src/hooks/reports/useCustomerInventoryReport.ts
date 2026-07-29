@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import { useCallback } from 'react';
 
 interface ReportCustomer {
@@ -135,7 +136,7 @@ export function useCustomerInventoryReport(customer: ReportCustomer | null, inve
           ` : '<p style="margin-top: 1rem; color: #666;">No inventory on file.</p>'}
 
           <div class="footer">
-            <p>RCK Genetics</p>
+            <p>${tenant.legalName}</p>
           </div>
         </body>
       </html>

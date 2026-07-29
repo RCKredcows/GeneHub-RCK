@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import { useCallback } from 'react';
 import type { Tank } from '../../types';
 
@@ -103,7 +104,7 @@ export function useTanksReport(tanks: Tank[] = []) {
           ` : '<p style="margin-top: 1rem; color: #666;">No tanks on file.</p>'}
 
           <div class="footer">
-            <p>RCK Genetics - Internal Use Only</p>
+            <p>${tenant.reportFooter}</p>
           </div>
         </body>
       </html>

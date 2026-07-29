@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiUser, FiMoon, FiSun, FiX, FiLayout, FiSettings, FiSave, FiAlertCircle, FiMessageSquare } from 'react-icons/fi';
@@ -400,7 +401,7 @@ export default function Settings({ user }: SettingsProps) {
           {/* Credits */}
           <div className="settings__credits">
             <p>Developed by <strong>Dalton Gorham</strong></p>
-            <p>&copy; {new Date().getFullYear()} RCKGENETICS</p>
+            <p>&copy; {new Date().getFullYear()} {tenant.legalName}</p>
           </div>
         </div>
       </main>

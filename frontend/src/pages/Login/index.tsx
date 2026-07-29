@@ -1,3 +1,4 @@
+import { tenant } from '../../config/tenant';
 import { Link } from 'react-router-dom'
 import { FiAlertCircle } from 'react-icons/fi'
 import { useLoginForm } from '../../hooks/useLoginForm'
@@ -21,8 +22,8 @@ export default function Login() {
       <div className="login__container">
         <div className="login__logo">
           <img
-            src="/rck_logo_dark_final-2.png"
-            alt="RCK Logo"
+            src={tenant.logoUrl}
+            alt={`${tenant.legalName} logo`}
             className="login__logo-image"
           />
         </div>
@@ -98,7 +99,7 @@ export default function Login() {
         {/* Help text */}
         <div className="login__footer">
           <p className="login__help-text">
-            RCK employees: Use your company email to access the system
+            {tenant.loginHint}
           </p>
         </div>
       </div>
