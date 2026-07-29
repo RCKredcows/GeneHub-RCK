@@ -9,9 +9,10 @@ variable "environment" {
   type        = string
 }
 
-variable "state_bucket_name" {
-  description = "The name of the bucket where the terraform state will live"
+variable "terraform_state_bucket" {
+  description = "Bucket holding this environment's Terraform state."
   type        = string
+  default     = "genehub-infra"
 }
 
 variable "vpc_cidr" {
