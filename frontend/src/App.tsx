@@ -34,6 +34,10 @@ function App() {
   const [tenantMissing, setTenantMissing] = useState(false)
   // Set when a valid account signs in at a workspace it does not belong to.
   const [deniedSlug, setDeniedSlug] = useState<string | null>(null)
+  // True between a session appearing and its workspace being confirmed. Without
+  // it the app renders on the session alone and the dashboard flashes up before
+  // a cross-workspace login is refused.
+  const [verifying, setVerifying] = useState(false)
 
   useEffect(() => {
     // Load dark mode preference on app start
@@ -124,7 +128,10 @@ function App() {
     // later tick, once the lock has been released.
     const { data: { subscription } } = onAuthStateChange((_event, session) => {
       setSession(session)
-      setTimeout(() => { void hydrateTenant(session) }, 0)
+      if (session) setVerifying(true)
+      setTimeout(() => {
+        void hydrateTenant(session).finally(() => setVerifying(false))
+      }, 0)
     })
 
     return () => {
@@ -132,7 +139,11 @@ function App() {
     }
   }, [])
 
-  if (loading) {
+  // `verifying` is deliberately part of this gate. A session is not on its own
+  // permission to render the app: it has to be confirmed against this
+  // workspace first, or a cross-workspace login shows the dashboard before
+  // being refused.
+  if (loading || verifying) {
     return (
       <div style={{
         display: 'flex',
