@@ -48,6 +48,8 @@ aws ecr get-login-password --region "$REGION" |
 log "docker build (linux/amd64)"
 docker build \
   --platform linux/amd64 \
+  --provenance=false \
+  --sbom=false \
   --build-arg "VITE_SUPABASE_URL=${SUPABASE_URL}" \
   --build-arg "VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" \
   -t "${REPO_URL}:${TAG}" \

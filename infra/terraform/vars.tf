@@ -76,6 +76,24 @@ variable "enable_wildcard_certificate" {
   default     = true
 }
 
+variable "alarm_email" {
+  description = "Address to receive alarm notifications. Leave empty to create the SNS topic without a subscription. AWS emails a confirmation link that must be clicked before anything is delivered."
+  type        = string
+  default     = ""
+}
+
+variable "alb_5xx_threshold" {
+  description = "ALB-generated 5xx responses in a 5 minute window before alarming."
+  type        = number
+  default     = 5
+}
+
+variable "target_5xx_threshold" {
+  description = "Application 5xx responses in a 5 minute window before alarming."
+  type        = number
+  default     = 10
+}
+
 variable "image_tag" {
   description = "Frontend image tag to run. Push it with scripts/build-and-push.sh before applying; Terraform does not build images."
   type        = string
