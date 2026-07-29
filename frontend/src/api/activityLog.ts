@@ -28,7 +28,7 @@ export const fetchActivityLog = async (options: FetchActivityLogOptions = {}) =>
       .from('activity_log')
       .select(`
         *,
-        user:employees!user_id(id, full_name)
+        user:employees!activity_log_user_id_fkey(id, full_name)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);

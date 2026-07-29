@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { getSession, onAuthStateChange } from './api'
+import { fetchCurrentTenant, fetchTenantBranding } from './api/tenants'
+import { applyTenant, resetTenant, tenantSlugFromHostname } from './config/tenant'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import OfflineBanner from './components/common/OfflineBanner'
 import Login from './pages/Login'
@@ -30,14 +32,33 @@ function App() {
       document.documentElement.setAttribute('data-theme', 'dark');
     }
 
+    // Resolve branding before the first paint. A signed-in user's own tenant is
+    // authoritative; falling back to the subdomain is what brands the login
+    // screen, where there is no session to read a tenant from.
+    const hydrateTenant = async (session: Session | null) => {
+      try {
+        if (session) {
+          applyTenant(await fetchCurrentTenant())
+          return
+        }
+        const slug = tenantSlugFromHostname()
+        applyTenant(slug ? await fetchTenantBranding(slug) : null)
+      } catch {
+        // Branding is cosmetic; a failure here must not block sign-in.
+        resetTenant()
+      }
+    }
+
     // Get initial session
-    getSession().then(({ session }) => {
+    getSession().then(async ({ session }) => {
+      await hydrateTenant(session)
       setSession(session)
       setLoading(false)
     })
 
     // Listen for auth changes
-    const { data: { subscription } } = onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = onAuthStateChange(async (_event, session) => {
+      await hydrateTenant(session)
       setSession(session)
     })
 

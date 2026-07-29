@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -23,6 +23,7 @@ export type Database = {
           entity_type: string
           id: string
           metadata: Json | null
+          tenant_id: string
           user_id: string
         }
         Insert: {
@@ -33,6 +34,7 @@ export type Database = {
           entity_type: string
           id?: string
           metadata?: Json | null
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -43,15 +45,23 @@ export type Database = {
           entity_type?: string
           id?: string
           metadata?: Json | null
+          tenant_id?: string
           user_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "activity_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "activity_log_user_id_fkey"
-            columns: ["user_id"]
+            columns: ["tenant_id", "user_id"]
             isOneToOne: false
             referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
         ]
       }
@@ -63,6 +73,7 @@ export type Database = {
           full_name: string
           id: string
           is_used: boolean | null
+          tenant_id: string
           used_at: string | null
         }
         Insert: {
@@ -72,6 +83,7 @@ export type Database = {
           full_name: string
           id?: string
           is_used?: boolean | null
+          tenant_id?: string
           used_at?: string | null
         }
         Update: {
@@ -81,9 +93,18 @@ export type Database = {
           full_name?: string
           id?: string
           is_used?: boolean | null
+          tenant_id?: string
           used_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "allowed_emails_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       canisters: {
         Row: {
@@ -93,6 +114,7 @@ export type Database = {
           notes: string | null
           position_in_tank: number
           tank_id: string | null
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -102,6 +124,7 @@ export type Database = {
           notes?: string | null
           position_in_tank?: number
           tank_id?: string | null
+          tenant_id?: string
           updated_at?: string | null
         }
         Update: {
@@ -111,22 +134,23 @@ export type Database = {
           notes?: string | null
           position_in_tank?: number
           tank_id?: string | null
+          tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "canisters_tank_id_fkey"
-            columns: ["tank_id"]
+            columns: ["tenant_id", "tank_id"]
             isOneToOne: false
             referencedRelation: "tanks"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
           {
-            foreignKeyName: "canisters_tank_id_fkey"
-            columns: ["tank_id"]
+            foreignKeyName: "canisters_tenant_id_fkey"
+            columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "v_low_nitrogen_alerts"
-            referencedColumns: ["tank_id"]
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -141,6 +165,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           state: string | null
+          tenant_id: string
           updated_at: string | null
           zip: string | null
         }
@@ -154,6 +179,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           state?: string | null
+          tenant_id?: string
           updated_at?: string | null
           zip?: string | null
         }
@@ -167,10 +193,19 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           state?: string | null
+          tenant_id?: string
           updated_at?: string | null
           zip?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employees: {
         Row: {
@@ -178,6 +213,7 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean | null
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -185,6 +221,7 @@ export type Database = {
           full_name: string
           id: string
           is_active?: boolean | null
+          tenant_id?: string
           updated_at?: string | null
         }
         Update: {
@@ -192,9 +229,18 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean | null
+          tenant_id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "employees_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       genetic_inventory: {
         Row: {
@@ -219,6 +265,7 @@ export type Database = {
           sire_id: string | null
           status: string | null
           tank_id: string | null
+          tenant_id: string
           unit: string | null
           updated_at: string | null
           updated_by: string | null
@@ -245,6 +292,7 @@ export type Database = {
           sire_id?: string | null
           status?: string | null
           tank_id?: string | null
+          tenant_id?: string
           unit?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -271,6 +319,7 @@ export type Database = {
           sire_id?: string | null
           status?: string | null
           tank_id?: string | null
+          tenant_id?: string
           unit?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -278,59 +327,52 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "genetic_inventory_canister_id_fkey"
-            columns: ["canister_id"]
+            columns: ["tenant_id", "canister_id"]
             isOneToOne: false
             referencedRelation: "canisters"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
           {
             foreignKeyName: "genetic_inventory_created_by_fkey"
-            columns: ["created_by"]
+            columns: ["tenant_id", "created_by"]
             isOneToOne: false
             referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
           {
             foreignKeyName: "genetic_inventory_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customer_inventory"
-            referencedColumns: ["customer_id"]
-          },
-          {
-            foreignKeyName: "genetic_inventory_customer_id_fkey"
-            columns: ["customer_id"]
+            columns: ["tenant_id", "customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
           {
             foreignKeyName: "genetic_inventory_sire_id_fkey"
-            columns: ["sire_id"]
+            columns: ["tenant_id", "sire_id"]
             isOneToOne: false
             referencedRelation: "sires"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
           {
             foreignKeyName: "genetic_inventory_tank_id_fkey"
-            columns: ["tank_id"]
+            columns: ["tenant_id", "tank_id"]
             isOneToOne: false
             referencedRelation: "tanks"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
           {
-            foreignKeyName: "genetic_inventory_tank_id_fkey"
-            columns: ["tank_id"]
+            foreignKeyName: "genetic_inventory_tenant_id_fkey"
+            columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "v_low_nitrogen_alerts"
-            referencedColumns: ["tank_id"]
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "genetic_inventory_updated_by_fkey"
-            columns: ["updated_by"]
+            columns: ["tenant_id", "updated_by"]
             isOneToOne: false
             referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
         ]
       }
@@ -346,6 +388,7 @@ export type Database = {
           nitrogen_level_before: number | null
           notes: string | null
           tank_id: string
+          tenant_id: string
         }
         Insert: {
           amount_added: number
@@ -358,6 +401,7 @@ export type Database = {
           nitrogen_level_before?: number | null
           notes?: string | null
           tank_id: string
+          tenant_id?: string
         }
         Update: {
           amount_added?: number
@@ -370,28 +414,29 @@ export type Database = {
           nitrogen_level_before?: number | null
           notes?: string | null
           tank_id?: string
+          tenant_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "nitrogen_fill_history_filled_by_fkey"
-            columns: ["filled_by"]
+            columns: ["tenant_id", "filled_by"]
             isOneToOne: false
             referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
           {
             foreignKeyName: "nitrogen_fill_history_tank_id_fkey"
-            columns: ["tank_id"]
+            columns: ["tenant_id", "tank_id"]
             isOneToOne: false
             referencedRelation: "tanks"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
           {
-            foreignKeyName: "nitrogen_fill_history_tank_id_fkey"
-            columns: ["tank_id"]
+            foreignKeyName: "nitrogen_fill_history_tenant_id_fkey"
+            columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "v_low_nitrogen_alerts"
-            referencedColumns: ["tank_id"]
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -407,6 +452,7 @@ export type Database = {
           resend_message_id: string | null
           sent_at: string | null
           status: string | null
+          tenant_id: string
           user_id: string
         }
         Insert: {
@@ -420,6 +466,7 @@ export type Database = {
           resend_message_id?: string | null
           sent_at?: string | null
           status?: string | null
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -433,9 +480,18 @@ export type Database = {
           resend_message_id?: string | null
           sent_at?: string | null
           status?: string | null
+          tenant_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sires: {
         Row: {
@@ -451,6 +507,7 @@ export type Database = {
           price_for_semen: number | null
           price_for_sexed_semen: number | null
           registration_number: string | null
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -466,6 +523,7 @@ export type Database = {
           price_for_semen?: number | null
           price_for_sexed_semen?: number | null
           registration_number?: string | null
+          tenant_id?: string
           updated_at?: string | null
         }
         Update: {
@@ -481,21 +539,22 @@ export type Database = {
           price_for_semen?: number | null
           price_for_sexed_semen?: number | null
           registration_number?: string | null
+          tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "sires_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customer_inventory"
-            referencedColumns: ["customer_id"]
-          },
-          {
-            foreignKeyName: "sires_customer_id_fkey"
-            columns: ["customer_id"]
+            columns: ["tenant_id", "customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "sires_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -507,6 +566,7 @@ export type Database = {
           id: string
           name: string
           parent_id: string | null
+          tenant_id: string
         }
         Insert: {
           created_at?: string | null
@@ -514,6 +574,7 @@ export type Database = {
           id?: string
           name: string
           parent_id?: string | null
+          tenant_id?: string
         }
         Update: {
           created_at?: string | null
@@ -521,13 +582,21 @@ export type Database = {
           id?: string
           name?: string
           parent_id?: string | null
+          tenant_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "supply_categories_parent_id_fkey"
-            columns: ["parent_id"]
+            columns: ["tenant_id", "parent_id"]
             isOneToOne: false
             referencedRelation: "supply_categories"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "supply_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -546,6 +615,7 @@ export type Database = {
           reorder_threshold: number | null
           supplier_contact: string | null
           supplier_name: string | null
+          tenant_id: string
           unit: string
           updated_at: string | null
         }
@@ -562,6 +632,7 @@ export type Database = {
           reorder_threshold?: number | null
           supplier_contact?: string | null
           supplier_name?: string | null
+          tenant_id?: string
           unit: string
           updated_at?: string | null
         }
@@ -578,15 +649,23 @@ export type Database = {
           reorder_threshold?: number | null
           supplier_contact?: string | null
           supplier_name?: string | null
+          tenant_id?: string
           unit?: string
           updated_at?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "supply_inventory_category_id_fkey"
-            columns: ["category_id"]
+            columns: ["tenant_id", "category_id"]
             isOneToOne: false
             referencedRelation: "supply_categories"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "supply_inventory_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -598,6 +677,7 @@ export type Database = {
           inventory_id: string
           notes: string | null
           quantity_used: number
+          tenant_id: string
           used_at: string | null
           used_by: string | null
         }
@@ -607,6 +687,7 @@ export type Database = {
           inventory_id: string
           notes?: string | null
           quantity_used: number
+          tenant_id?: string
           used_at?: string | null
           used_by?: string | null
         }
@@ -616,30 +697,31 @@ export type Database = {
           inventory_id?: string
           notes?: string | null
           quantity_used?: number
+          tenant_id?: string
           used_at?: string | null
           used_by?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "supply_usage_log_inventory_id_fkey"
-            columns: ["inventory_id"]
+            columns: ["tenant_id", "inventory_id"]
             isOneToOne: false
             referencedRelation: "supply_inventory"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
           {
-            foreignKeyName: "supply_usage_log_inventory_id_fkey"
-            columns: ["inventory_id"]
+            foreignKeyName: "supply_usage_log_tenant_id_fkey"
+            columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "v_low_stock_alerts"
-            referencedColumns: ["item_id"]
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "supply_usage_log_used_by_fkey"
-            columns: ["used_by"]
+            columns: ["tenant_id", "used_by"]
             isOneToOne: false
             referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedColumns: ["tenant_id", "id"]
           },
         ]
       }
@@ -657,6 +739,7 @@ export type Database = {
           notes: string | null
           sort_order: number | null
           tank_name: string
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -672,6 +755,7 @@ export type Database = {
           notes?: string | null
           sort_order?: number | null
           tank_name: string
+          tenant_id?: string
           updated_at?: string | null
         }
         Update: {
@@ -687,7 +771,58 @@ export type Database = {
           notes?: string | null
           sort_order?: number | null
           tank_name?: string
+          tenant_id?: string
           updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tanks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          created_at: string
+          id: string
+          legal_name: string | null
+          login_hint: string | null
+          logo_url: string | null
+          name: string
+          report_footer: string | null
+          settings: Json
+          slug: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          legal_name?: string | null
+          login_hint?: string | null
+          logo_url?: string | null
+          name: string
+          report_footer?: string | null
+          settings?: Json
+          slug: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          legal_name?: string | null
+          login_hint?: string | null
+          logo_url?: string | null
+          name?: string
+          report_footer?: string | null
+          settings?: Json
+          slug?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -705,6 +840,7 @@ export type Database = {
           notify_low_medical_stock: boolean | null
           notify_low_nitrogen: boolean | null
           notify_periodic_reminder: boolean | null
+          tenant_id: string
           updated_at: string | null
           user_id: string
         }
@@ -721,6 +857,7 @@ export type Database = {
           notify_low_medical_stock?: boolean | null
           notify_low_nitrogen?: boolean | null
           notify_periodic_reminder?: boolean | null
+          tenant_id?: string
           updated_at?: string | null
           user_id: string
         }
@@ -737,10 +874,19 @@ export type Database = {
           notify_low_medical_stock?: boolean | null
           notify_low_nitrogen?: boolean | null
           notify_periodic_reminder?: boolean | null
+          tenant_id?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -761,29 +907,7 @@ export type Database = {
           tank_id: string | null
           tank_name: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "genetic_inventory_canister_id_fkey"
-            columns: ["canister_id"]
-            isOneToOne: false
-            referencedRelation: "canisters"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "genetic_inventory_tank_id_fkey"
-            columns: ["tank_id"]
-            isOneToOne: false
-            referencedRelation: "tanks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "genetic_inventory_tank_id_fkey"
-            columns: ["tank_id"]
-            isOneToOne: false
-            referencedRelation: "v_low_nitrogen_alerts"
-            referencedColumns: ["tank_id"]
-          },
-        ]
+        Relationships: []
       }
       v_low_nitrogen_alerts: {
         Row: {
@@ -831,6 +955,18 @@ export type Database = {
           full_name: string
         }[]
       }
+      current_tenant_id: { Args: never; Returns: string }
+      get_tenant_branding: {
+        Args: { p_slug: string }
+        Returns: {
+          legal_name: string
+          login_hint: string
+          logo_url: string
+          name: string
+          report_footer: string
+          slug: string
+        }[]
+      }
       insert_canister_at_position: {
         Args: { p_tank_id: string; target_position: number }
         Returns: undefined
@@ -869,94 +1005,50 @@ export type Database = {
           updated_at: string
         }[]
       }
-      search_genetic_inventory:
-        | {
-            Args: {
-              ivf_filter?: string
-              owner_filter?: string
-              page_limit?: number
-              page_offset?: number
-              search_term?: string
-              sex_filter?: string
-              type_filter?: string
-            }
-            Returns: {
-              breed: string
-              cane_number: string
-              canister_id: string
-              canister_number: string
-              check_in_date: string
-              check_out_date: string
-              created_at: string
-              created_by: string
-              customer_id: string
-              customer_name: string
-              embryo_name: string
-              id: string
-              inventory_type: string
-              is_ivf: boolean
-              notes: string
-              original_quantity: number
-              owner_type: string
-              price_for_semen: number
-              quantity: number
-              sex_type: string
-              sire_breed: string
-              sire_id: string
-              sire_name: string
-              status: string
-              tank_id: string
-              tank_name: string
-              total_count: number
-              unit: string
-              updated_at: string
-              updated_by: string
-            }[]
-          }
-        | {
-            Args: {
-              ivf_filter?: string
-              owner_filter?: string
-              page_limit?: number
-              page_offset?: number
-              search_term?: string
-              sex_filter?: string
-              status_filter?: string
-              type_filter?: string
-            }
-            Returns: {
-              breed: string
-              cane_number: string
-              canister_id: string
-              canister_number: string
-              check_in_date: string
-              check_out_date: string
-              created_at: string
-              created_by: string
-              customer_id: string
-              customer_name: string
-              embryo_name: string
-              id: string
-              inventory_type: string
-              is_ivf: boolean
-              notes: string
-              original_quantity: number
-              owner_type: string
-              price_for_semen: number
-              quantity: number
-              sex_type: string
-              sire_breed: string
-              sire_id: string
-              sire_name: string
-              status: string
-              tank_id: string
-              tank_name: string
-              total_count: number
-              unit: string
-              updated_at: string
-              updated_by: string
-            }[]
-          }
+      search_genetic_inventory: {
+        Args: {
+          ivf_filter?: string
+          owner_filter?: string
+          page_limit?: number
+          page_offset?: number
+          search_term?: string
+          sex_filter?: string
+          status_filter?: string
+          type_filter?: string
+        }
+        Returns: {
+          breed: string
+          cane_number: string
+          canister_id: string
+          canister_number: string
+          check_in_date: string
+          check_out_date: string
+          created_at: string
+          created_by: string
+          customer_id: string
+          customer_name: string
+          embryo_name: string
+          id: string
+          inventory_type: string
+          is_ivf: boolean
+          notes: string
+          original_quantity: number
+          owner_type: string
+          price_for_semen: number
+          quantity: number
+          sex_type: string
+          sire_breed: string
+          sire_id: string
+          sire_name: string
+          status: string
+          tank_id: string
+          tank_name: string
+          total_count: number
+          unit: string
+          updated_at: string
+          updated_by: string
+        }[]
+      }
       update_canister_position: {
         Args: {
           new_position: number

@@ -191,7 +191,7 @@ describe('Sires Page', () => {
 
     expect(screen.getByText('All')).toBeInTheDocument()
     expect(screen.getByText('Customer')).toBeInTheDocument()
-    expect(screen.getByText('RCK')).toBeInTheDocument()
+    expect(screen.getByText('Testco')).toBeInTheDocument()
     expect(screen.getByText('Unknown')).toBeInTheDocument()
   })
 
@@ -204,7 +204,7 @@ describe('Sires Page', () => {
 
     renderWithRouter(<Sires user={mockUser} />)
 
-    fireEvent.click(screen.getByText('RCK'))
+    fireEvent.click(screen.getByText('Testco'))
 
     expect(setOwnerFilter).toHaveBeenCalledWith('internal')
   })

@@ -270,7 +270,7 @@ describe('GeneticInventory Page', () => {
 
     expect(screen.getByText('All')).toBeInTheDocument()
     expect(screen.getByText('Customer')).toBeInTheDocument()
-    expect(screen.getByText('RCK')).toBeInTheDocument()
+    expect(screen.getByText('Testco')).toBeInTheDocument()
     expect(screen.getByText('Unknown')).toBeInTheDocument()
   })
 

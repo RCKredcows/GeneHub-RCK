@@ -55,6 +55,7 @@ export const fetchTanks = async (): Promise<{ data: TankWithCount[]; error: Erro
       .from('tanks')
       .select(`
         id,
+        tenant_id,
         tank_name,
         location,
         capacity,
@@ -390,7 +391,7 @@ export const getNitrogenFillHistory = async (tankId: string, limit = 50) => {
       .from('nitrogen_fill_history')
       .select(`
         *,
-        employees:filled_by (
+        employees:employees!nitrogen_fill_history_filled_by_fkey (
           id,
           full_name
         )

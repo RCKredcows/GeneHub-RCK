@@ -1,15 +1,23 @@
 /**
  * Tenant-specific presentation.
  *
- * Everything here is currently a constant for the single tenant this app was
- * built for. When multi-tenancy lands, `tenant` becomes a lookup on the tenant
- * resolved from the hostname, and nothing that imports it has to change.
+ * `tenant` is a mutable module object rather than a React context on purpose.
+ * Roughly twenty components read it directly, and routing them all through a
+ * hook would be churn for no benefit -- the value changes at most twice per
+ * session, and never while the authenticated UI is mounted.
+ *
+ * The lifecycle is: fall back to neutral defaults, hydrate from the subdomain
+ * before the login screen paints, then re-hydrate from the signed-in user's
+ * tenant. App.tsx holds the loading gate open until hydration finishes, so no
+ * component ever renders against a stale value.
  *
  * Nothing in here is authorization. It is labels, logos, and copy.
  */
 
 export interface TenantConfig {
-  /** Short name used in UI labels, e.g. the owner filter tab. */
+  /** Subdomain, and the tenant's stable identifier in the UI layer. */
+  slug: string;
+  /** Short name used in labels, e.g. the owner filter tab. */
   name: string;
   /** Full legal name for report footers and copyright lines. */
   legalName: string;
@@ -21,18 +29,53 @@ export interface TenantConfig {
   loginHint: string;
 }
 
-export const tenant: TenantConfig = {
-  name: 'RCK',
-  legalName: 'RCK Genetics',
-  logoUrl: '/rck_logo_dark_final-2.png',
-  reportFooter: 'RCK Genetics - Internal Use Only',
-  loginHint: 'RCK employees: Use your company email to access the system',
+/**
+ * Used before a tenant is known: an unrecognised subdomain, or the apex.
+ * Deliberately unbranded rather than any one customer's identity.
+ */
+export const DEFAULT_TENANT: TenantConfig = {
+  slug: '',
+  name: 'GeneHub',
+  legalName: 'GeneHub',
+  logoUrl: '/icon-192.png',
+  reportFooter: 'GeneHub',
+  loginHint: '',
 };
+
+/** Read at render time by components; mutated only by applyTenant/resetTenant. */
+export const tenant: TenantConfig = { ...DEFAULT_TENANT };
+
+export function applyTenant(config: TenantConfig | null): void {
+  Object.assign(tenant, config ?? DEFAULT_TENANT);
+}
+
+export function resetTenant(): void {
+  Object.assign(tenant, DEFAULT_TENANT);
+}
+
+/**
+ * Tenant slug from the hostname, or null at the apex.
+ *
+ * Only the leftmost label counts, and only when there is one more label than
+ * the registrable domain. Localhost and IP addresses yield null so local
+ * development falls back to defaults.
+ */
+export function tenantSlugFromHostname(hostname: string = window.location.hostname): string | null {
+  if (!hostname || hostname === 'localhost' || /^[\d.]+$/.test(hostname)) return null;
+
+  const labels = hostname.split('.');
+  if (labels.length < 3) return null;
+
+  const slug = labels[0].toLowerCase();
+  if (slug === 'www') return null;
+
+  return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(slug) ? slug : null;
+}
 
 /**
  * Who owns a sire or an inventory item.
  *
- * `internal` means the operation running this system owns it. It was stored as
+ * `internal` means the tenant running this system owns it. It was stored as
  * the literal 'rck' until migration 001; the concept was always generic, only
  * the value was named after the first tenant.
  */
