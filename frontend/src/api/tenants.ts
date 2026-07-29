@@ -25,12 +25,62 @@ export async function fetchCurrentTenant(): Promise<TenantConfig | null> {
  * session to authorize against.
  */
 export async function fetchTenantBranding(slug: string): Promise<TenantConfig | null> {
-  const { data, error } = await supabase
-    .rpc('get_tenant_branding', { p_slug: slug })
-    .maybeSingle();
+  // Deliberately not .maybeSingle(). That asks PostgREST for a single-object
+  // representation, and a set-returning function with no rows answers 406
+  // instead -- which is exactly the unknown-tenant case this has to handle.
+  const { data, error } = await supabase.rpc('get_tenant_branding', { p_slug: slug });
 
   if (error) throw error;
-  return data ? toConfig(data) : null;
+  return data?.[0] ? toConfig(data[0]) : null;
+}
+
+/** Whether a subdomain is well formed, unreserved, and unclaimed. */
+export async function isSlugAvailable(slug: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('is_slug_available', { p_slug: slug });
+  if (error) throw error;
+  return data === true;
+}
+
+export type CreateTenantError =
+  | 'invalid_slug'
+  | 'reserved_slug'
+  | 'slug_taken'
+  | 'missing_name'
+  | 'invalid_email'
+  | 'email_taken';
+
+export interface CreateTenantResult {
+  ok: boolean;
+  errorCode: CreateTenantError | null;
+  slug: string;
+}
+
+/**
+ * Creates the tenant and an invitation for its first user. Does not create the
+ * account: the caller sends the person to their new subdomain to sign up, so
+ * the session is established on the origin they will actually use.
+ */
+export async function createTenantWithOwner(params: {
+  slug: string;
+  name: string;
+  email: string;
+  fullName: string;
+}): Promise<CreateTenantResult> {
+  const { data, error } = await supabase.rpc('create_tenant_with_owner', {
+    p_slug: params.slug,
+    p_name: params.name,
+    p_email: params.email,
+    p_full_name: params.fullName,
+  });
+
+  if (error) throw error;
+
+  const row = data?.[0];
+  return {
+    ok: row?.ok ?? false,
+    errorCode: (row?.error_code as CreateTenantError | null) ?? null,
+    slug: row?.slug ?? params.slug,
+  };
 }
 
 interface TenantRow {

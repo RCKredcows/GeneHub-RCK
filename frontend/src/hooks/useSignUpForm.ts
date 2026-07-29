@@ -32,7 +32,13 @@ const initialFormData: SignUpFormData = {
  * Consolidates form data, errors, loading, message, and success state.
  */
 export function useSignUpForm() {
-  const [formData, setFormData] = useState<SignUpFormData>(initialFormData);
+  // Arriving from the landing page, the address is already known and is the one
+  // the invitation was written for. Prefilling avoids a mistyped second entry
+  // that would fail the allowed_emails check with no obvious explanation.
+  const [formData, setFormData] = useState<SignUpFormData>(() => {
+    const invited = new URLSearchParams(window.location.search).get('email');
+    return invited ? { ...initialFormData, email: invited } : initialFormData;
+  });
   const [errors, setErrors] = useState<SignUpFormErrors>({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');

@@ -493,6 +493,18 @@ export type Database = {
           },
         ]
       }
+      reserved_slugs: {
+        Row: {
+          slug: string
+        }
+        Insert: {
+          slug: string
+        }
+        Update: {
+          slug?: string
+        }
+        Relationships: []
+      }
       sires: {
         Row: {
           available_for_sale: boolean
@@ -955,6 +967,19 @@ export type Database = {
           full_name: string
         }[]
       }
+      create_tenant_with_owner: {
+        Args: {
+          p_email: string
+          p_full_name: string
+          p_name: string
+          p_slug: string
+        }
+        Returns: {
+          error_code: string
+          ok: boolean
+          slug: string
+        }[]
+      }
       current_tenant_id: { Args: never; Returns: string }
       get_tenant_branding: {
         Args: { p_slug: string }
@@ -975,6 +1000,7 @@ export type Database = {
         Args: { target_position: number }
         Returns: undefined
       }
+      is_slug_available: { Args: { p_slug: string }; Returns: boolean }
       mark_email_used: { Args: { used_email: string }; Returns: undefined }
       normalize_canister_positions: {
         Args: { exclude_canister_id?: string; p_tank_id: string }

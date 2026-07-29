@@ -11,6 +11,7 @@ import {
 } from './config/tenant'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import OfflineBanner from './components/common/OfflineBanner'
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import ForgotPassword from './pages/ForgotPassword'
@@ -133,6 +134,17 @@ function App() {
       }}>
         Loading...
       </div>
+    )
+  }
+
+  if (!tenantSlugFromHostname()) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
     )
   }
 
