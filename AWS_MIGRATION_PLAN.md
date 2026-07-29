@@ -1,533 +1,285 @@
 # GeneHub AWS Migration Plan
 
-Status: proposed  
-Prepared: 2026-07-27  
-Source reviewed: `/Users/daltongorham/Git/GeneHub`
+Status: in progress — development environment live, production not yet migrated
+Last updated: 2026-07-29
+Supersedes: the original plan of 2026-07-27, which proposed replacing Supabase
+with RDS, Cognito, and a FastAPI backend. That path was assessed and dropped.
+See §9.
 
-## 1. Executive decision
+## 1. What changed, and why
 
-Migrate GeneHub in two major steps:
+The original plan had two halves: move hosting to AWS, then replace Supabase
+with RDS + Cognito + FastAPI + S3.
 
-1. **Hosting migration:** containerize the existing React/Vite PWA and run it on ECS Fargate behind an Application Load Balancer while it continues to use Supabase.
-2. **Platform migration:** add a Python/FastAPI backend API on ECS, move PostgreSQL to RDS, auth to Amazon Cognito, object storage to S3, and scheduled notification work to EventBridge Scheduler plus Fargate workers.
+**The first half was done. The second was abandoned deliberately.**
 
-This gets an AWS-hosted application working early and separates the low-risk hosting move from the larger Supabase replacement.
+Nothing in GeneHub required leaving Supabase. The usual forcing functions —
+compliance, data residency, scale, or server-side logic that cannot live in
+Postgres — none applied to fourteen tables and a job that emails people about
+low nitrogen. What it would have cost was the entire backend rewrite: a Cognito
+migration with forced password resets for every user, porting eleven functions
+and twenty-three policies, moving storage to S3, rewriting three edge functions
+as Fargate workers, and converting nine frontend API modules from Supabase
+clients to HTTP clients.
 
-### Recommended architecture decisions
+Critically, **multi-tenancy never required it**. `tenant_id` on every table,
+tenant-aware constraints, composite foreign keys, and RLS comparing row tenant
+to session tenant are ordinary Postgres. Supabase is Postgres. That work is
+identical either way, and it is the hard part.
 
-- Use **Amazon Cognito User Pools** for authentication.
-- Use **Python with FastAPI** for the application API and scheduled worker code.
-- Do **not** use API Gateway in the first version. API Gateway is an API front door and JWT authorizer, not an identity provider. The existing ALB can route both the web application and `/api/*` traffic.
-- Use **one shared ECS service** for the multi-tenant application unless dedicated compute is a contractual isolation requirement.
-- Resolve tenants from the subdomain, but always verify the authenticated user's tenant membership in the backend.
-- Use **one shared RDS PostgreSQL database** with `tenant_id` on all tenant-owned rows and PostgreSQL RLS as defense in depth.
-- Use a wildcard Route 53 record and wildcard ACM certificate, so adding a logical tenant does not require Terraform or DNS changes.
-- Keep schema migrations outside Terraform. Run them as a controlled one-off ECS task during deployment.
+The accepted trade-off: the browser talks to the database directly, so **all
+authorisation lives in RLS**. There is no server-side second layer. That is why
+the policies in §4 are covered by an automated isolation suite rather than
+reviewed by eye.
 
-## 2. Current application findings
-
-GeneHub is currently:
-
-- A React 19/Vite SPA and PWA hosted on Vercel.
-- A browser-to-Supabase application with no server-side application backend.
-- Directly coupled to Supabase Auth, PostgREST table queries, PostgreSQL RPC functions, and Supabase Storage.
-- Using a PostgreSQL schema with 14 tables, 3 views, 11 functions, and 23 RLS policies.
-- Using three Supabase Edge Functions for low-stock, low-nitrogen, and periodic reminder emails.
-- Using `pg_cron`, `pg_net`, and Resend for scheduled notifications.
-- Using an `allowed_emails` invitation model and a trigger on `auth.users`.
-- Storing sire images in the public `sire-images` Supabase Storage bucket.
-- Importing Vercel Analytics and Speed Insights in the frontend.
-
-The code does not currently use Supabase realtime channels, despite realtime being mentioned in the architecture document. No realtime replacement is needed for the initial migration.
-
-### Important gaps
-
-- The database is single-tenant today; none of the business tables has `tenant_id`.
-- Existing RLS policies generally authorize every authenticated user, rather than isolating organizations.
-- RDS cannot be called safely from a browser. A backend API is required.
-- Supabase Auth's `auth.users` schema, auth helper functions, and database triggers are not portable to RDS as written.
-- Supabase Storage APIs and public URLs must be replaced with S3 object keys and upload/download flows.
-- Supabase user passwords should be treated as non-portable. Plan on Cognito invitations or password resets unless a just-in-time migration is deliberately built.
-
-## 3. Target architecture
+## 2. Current architecture
 
 ```mermaid
 flowchart TD
-    U["User at tenant.genehub.example"] --> R53["Route 53 apex and wildcard records"]
-    R53 --> ALB["Public ALB, ACM TLS certificate"]
-    ALB --> WEB["ECS Fargate application service"]
-    WEB --> UI["Nginx: React PWA and SPA fallback"]
-    WEB --> API["Python / FastAPI API"]
-    API --> COG["Cognito User Pool JWT verification"]
-    API --> DBP["RDS Proxy (recommended before production)"]
-    DBP --> RDS["Private RDS PostgreSQL"]
-    API --> S3["Private S3 image bucket"]
-    API --> SM["Secrets Manager"]
-    SCH["EventBridge Scheduler"] --> JOB["One-off Fargate worker task"]
-    JOB --> RDS
-    JOB --> EMAIL["Resend initially or SES later"]
-    UI --> CW["CloudWatch logs, metrics, alarms"]
-    API --> CW
-    JOB --> CW
+    U["tenant.daltongorham.com"] --> R53["Route 53: apex + wildcard alias"]
+    R53 --> ALB["ALB :443, ACM wildcard cert"]
+    ALB --> ECS["ECS Fargate: nginx + React SPA"]
+    B["Browser"] --> SB["Supabase: Auth, PostgREST, Storage"]
+    SB --> PG["Postgres: tenants, RLS, composite FKs"]
+    ECS --> CW["CloudWatch logs, 4 alarms, SNS"]
+    ALB --> S3["S3 access logs"]
 ```
 
-### Network layout
+AWS serves the application bundle. The browser talks to Supabase directly for
+everything else. AWS holds no application data.
 
-- One VPC spanning at least two Availability Zones.
-- Public subnets: ALB and NAT gateways.
-- Private application subnets: ECS tasks.
-- Isolated/private data subnets: RDS and RDS Proxy.
-- Security group flow:
-  - Internet to ALB on 443 only.
-  - ALB to ECS application port only.
-  - ECS to RDS Proxy/PostgreSQL only.
-  - No public RDS endpoint.
-- For a low-cost nonproduction environment, use one NAT gateway. Production should use a NAT gateway per AZ or the required VPC endpoints plus an explicit egress design.
+### Hosting
 
-### Request routing
+| Component | Detail |
+|---|---|
+| Account / region | `257289932696`, `us-east-1` |
+| VPC | `10.0.0.0/16`, 2 AZs, three `/20` tiers per AZ: public, private-app, isolated data |
+| Egress | One NAT gateway (dev). `single_nat_gateway = false` gives one per AZ |
+| Endpoints | S3 gateway; interface endpoints for `ecr.api`, `ecr.dkr`, `logs`, `secretsmanager`, `sts` |
+| Load balancer | Public ALB; 80 redirects to 443; `preserve_host_header`, `desync_mitigation_mode = strictest` |
+| Compute | ECS Fargate, 1 task, 256 CPU / 512 MiB, private subnets, no public IP |
+| Registry | ECR, immutable tags, scan on push, lifecycle expiry |
+| DNS / TLS | Route 53 zone for `daltongorham.com`; ACM cert covering apex **and** `*.daltongorham.com` |
+| Observability | VPC flow logs, ALB access logs to S3, four alarms to SNS |
 
-- `genehub.example` can serve a landing page or redirect.
-- `*.genehub.example` points to the same ALB.
-- `/api/*` is handled by the backend.
-- All other paths are handled by Nginx with `try_files ... /index.html` for SPA routing.
-- The backend obtains the tenant slug from a validated `Host` header, looks up the tenant, and checks membership for the JWT `sub`.
-- A tenant supplied in a request body, query string, or custom client header is never authoritative.
+The isolated data tier has **no default route** and is currently unused. It
+exists because it is far cheaper to create now than to move a database into
+later, should RDS ever become necessary.
 
-## 4. Authentication and authorization
+Roughly $50/month: NAT ~$32, ALB ~$16, interface endpoints, minimal logs.
 
-### Why Cognito, not API Gateway
+### Domain
 
-Cognito User Pools replace Supabase Auth by managing users, password policies, reset flows, MFA, and JWT issuance. API Gateway can validate Cognito JWTs, but it does not manage the users. Because the platform already needs an ALB for ECS and browser traffic, adding API Gateway now would create a second public routing layer without solving a current requirement.
+`daltongorham.com` is a **stand-in**. Production still serves from Vercel on the
+real domain. Swapping is one line in `dev.tfvars` plus a nameserver delegation.
 
-Reconsider API Gateway later if GeneHub needs:
+The wildcard certificate and wildcard alias record are what make tenancy work:
+**onboarding a tenant requires no infrastructure change at all.**
 
-- A public or partner API with usage plans and API keys.
-- Per-route quotas or monetization.
-- Many Lambda-backed endpoints.
-- WebSocket APIs.
-- A centralized API front door for several independently operated backend systems.
+## 3. Application model
 
-### Initial Cognito design
+### Apex is a landing page; workspaces live on subdomains
 
-- One user pool per environment, not one user pool per tenant.
-- One public SPA app client with no client secret.
-- Keep tenant roles in PostgreSQL `tenant_memberships`, not in Cognito groups.
-- Use the Cognito `sub` only as the external identity key.
-- Disable open self-registration initially; use tenant-admin invitations.
-- Adapt the existing login, sign-up, forgot-password, and reset-password screens to Cognito's flows.
-- The API validates JWT signature, issuer, app client/audience, expiry, and token use.
-- The API loads current membership from PostgreSQL on each request or from a short-lived server-side cache.
-- Tenant suspension is checked in the database and takes effect without waiting for a JWT to expire.
+- `daltongorham.com` — create a workspace. No login.
+- `<slug>.daltongorham.com` — login and the application, branded per tenant.
 
-For the first implementation, the SPA may obtain Cognito tokens with the supported Cognito client library and send the access token as a bearer token. Before production, make an explicit security decision between this approach and a backend-for-frontend session using secure, HTTP-only cookies.
+Signing in at the apex was removed because it produced an incoherent page:
+generic branding wrapped around a specific tenant's data, since no tenant can be
+resolved from the hostname.
 
-### User migration
+Signup ordering matters and is not accidental. `create_tenant_with_owner()`
+creates the tenant and an `allowed_emails` invitation but **not** the account.
+The client then redirects to `<slug>.<domain>/signup?email=…`, where the
+existing `handle_new_user()` trigger consumes the invitation. Creating the
+account at the apex would strand the session there — Supabase stores it in
+`localStorage`, which is scoped per origin.
 
-Recommended default:
+### Cross-workspace access
 
-1. Export user identity metadata from Supabase.
-2. Create matching `app_users` records in RDS.
-3. Create or invite the users in Cognito.
-4. Require a Cognito password setup/reset.
-5. Store the Cognito `sub` on the matching `app_users` record after account activation.
+A valid account signing in at a workspace it does not belong to is **signed out
+and told so**. Redirecting was tried and removed: the session cannot cross
+origins, so it only produced a second login with no explanation.
 
-A just-in-time Cognito user migration Lambda is possible, but it would keep Supabase Auth available during transition and adds security and operational complexity. Use it only if forced password resets are unacceptable.
+This is presentation, not security. RLS already guarantees a user reads only
+their own tenant's rows regardless of hostname.
 
-## 5. Database and tenant model
+### Tenant model
 
-### Core identity tables
+**One tenant per user, no roles.** `employees.tenant_id` is the single source of
+truth; membership alone grants access. A join table and a role column were
+considered and rejected as unneeded complexity.
 
-Add:
+Consequence: the tenant comes from the JWT, not the hostname. The subdomain is
+branding and routing, never an authorisation boundary.
 
-- `tenants(id, slug, name, status, settings, created_at, updated_at)`
-- `app_users(id, cognito_sub, email, full_name, status, created_at, updated_at)`
-- `tenant_memberships(tenant_id, user_id, role, status, invited_by, accepted_at, created_at)`
+### Branding
 
-Use an internal UUID for `app_users.id`; keep `cognito_sub` as a unique external identifier.
+Per-tenant name, legal name, logo, login hint, and report footer live on the
+`tenants` row. `src/config/tenant.ts` is a mutable module object hydrated at
+startup: from the signed-in user's tenant, or — before login — from the
+subdomain via the anon-callable `get_tenant_branding()` RPC. About twenty
+components read it directly; a React context would have been churn for a value
+that changes at most twice per session.
 
-### Tenant-owned data
+## 4. Database migrations
 
-Add a non-null `tenant_id` to every tenant-owned table:
+Production is still on `000` alone. Everything below is applied to dev only.
 
-- `employees`
-- `customers`
-- `sires`
-- `tanks`
-- `canisters`
-- `genetic_inventory`
-- `supply_categories`
-- `supply_inventory`
-- `supply_usage_log`
-- `nitrogen_fill_history`
-- `user_settings`
-- `notification_log`
-- `activity_log`
-- `allowed_emails`
+| Migration | Purpose |
+|---|---|
+| `000_schema.sql` | Baseline. Verified faithful to production |
+| `001_generic_owner_type` | `owner_type` value `'rck'` → `'internal'` |
+| `002_tenants` | `tenants` table, `tenant_id` on all 14 tables, backfill, tenant-aware uniques, `current_tenant_id()`, `security_invoker` on two leaky views |
+| `003_tenant_rls` | Replaces all 23 policies with tenant-scoped ones; enables RLS on `tenants` |
+| `004_tenant_id_default` | `tenant_id` defaults to `current_tenant_id()` so the client never sends it |
+| `005_composite_fks` | 15 foreign keys rewritten to include `tenant_id` |
+| `006_tenant_branding` | Branding columns + `get_tenant_branding()` |
+| `007_tenant_signup` | `reserved_slugs`, `is_slug_available()`, `create_tenant_with_owner()` |
 
-`user_settings` should be scoped by both user and tenant so that a person belonging to two organizations can have different preferences in each.
+`supabase db diff --linked` reproduces dev exactly; the only differences are
+Supabase platform artifacts (`pg_net`, an `rls_auto_enable` event trigger).
 
-### Constraints that must change
+**Two things to resolve before promoting to production:**
 
-- Include `tenant_id` in business uniqueness rules, such as tank names, category names, allowed email invitations, and canister positions/numbers.
-- Prevent cross-tenant references with composite foreign keys such as `(tenant_id, customer_id) -> customers(tenant_id, id)`.
-- Add tenant-leading indexes for common list, search, and notification queries.
-- Update all views and stored functions to return and filter the current tenant.
-- Make tenant backfill and `NOT NULL` enforcement separate migration steps for a live-data migration.
+- `002` and `006` insert and backfill an `rck` tenant. Correct for promoting
+  RCK's production; wrong for a fresh environment for anyone else.
+- No migration creates `pg_net`, which production's `pg_cron` notification jobs
+  depend on.
 
-### RLS model on RDS
+### Isolation is enforced at two independent layers
 
-Do not copy Supabase's `auth.uid()` and `auth.role()` policies.
+**RLS** governs access. Every policy compares `tenant_id` against
+`current_tenant_id()`, which reads the caller's `employees` row and is
+`SECURITY DEFINER` — without that, the policy on `employees` would recurse into
+itself.
 
-For every API transaction:
+**Composite foreign keys** govern integrity. `genetic_inventory(tenant_id,
+sire_id) → sires(tenant_id, id)` makes a cross-tenant reference structurally
+impossible, independent of who is asking. Ten are `ON DELETE SET NULL` and use
+Postgres 15+'s column-list syntax, since nulling the whole key would violate
+`tenant_id NOT NULL`.
 
-1. Begin a database transaction.
-2. Set transaction-local values for `app.user_id` and `app.tenant_id`.
-3. Execute the query.
-4. Commit or roll back.
+One consequence worth remembering: PostgREST resolves embedded selects from
+foreign-key metadata, so hints must name the **constraint**, not the column —
+`employees!activity_log_user_id_fkey`, not `employees!user_id`.
 
-RLS policies compare each row's `tenant_id` with `current_setting('app.tenant_id', true)`. Use a runtime database role that does not own the tables and does not have `BYPASSRLS`. Keep the migration/owner role separate from the runtime role.
+### Verification
 
-The API must still include explicit tenant filters. RLS is the second boundary, not a substitute for clear application queries.
+`frontend/supabase/tests/` — run in the SQL editor, both roll back.
 
-### Supabase-specific schema changes
+- `tenant_isolation.sql` — 13 checks. Impersonates a real user via
+  `request.jwt.claims`, since the SQL editor connects as owner and bypasses
+  every policy. Covers scoped reads, all three views, insert defaulting, and
+  cross-tenant insert/update/delete. Expected counts are measured at run time,
+  not hardcoded, so working in the app does not cause false failures.
+- `composite_fks.sql` — 8 checks. Runs as owner deliberately: the claim is that
+  the database refuses cross-tenant references even for a caller every policy
+  would allow.
 
-- Replace foreign keys to `auth.users` with foreign keys to `app_users`.
-- Remove the trigger on `auth.users`.
-- Replace `auth.uid()`, `auth.role()`, and Supabase JWT helpers.
-- Remove `pg_net`; scheduled work will not call HTTP from the database.
-- `pg_cron` is available on supported RDS PostgreSQL versions, but prefer EventBridge Scheduler so schedules, retries, and failures are visible in AWS.
-- Preserve portable views and business functions where they remain useful.
+Both suites pass in full.
 
-## 6. Backend API
+## 5. Operations
 
-Build a Python/FastAPI API in the existing monorepo:
-
-- FastAPI served by an ASGI server such as Uvicorn.
-- Pydantic request, response, and configuration models.
-- SQLAlchemy 2 with the Psycopg PostgreSQL driver, explicit transactions, and connection pooling.
-- Alembic for ordered, repeatable database schema migrations.
-- A Cognito JWT-validation dependency shared by protected routes.
-- Structured JSON logging with request and tenant correlation IDs.
-- `/healthz` for process health and `/readyz` for dependency readiness.
-- Pytest for unit and API integration tests.
-- OpenAPI generated by FastAPI as internal API documentation.
-- API modules matching the current frontend modules:
-  - auth/profile
-  - tenants/memberships/invitations
-  - customers
-  - sires
-  - tanks/canisters/fill history
-  - genetic inventory
-  - medical inventory/categories/usage
-  - activity
-  - settings
-  - reports
-  - image upload/delete
-
-The frontend's nine Supabase-coupled API modules become ordinary HTTP clients. Existing React Query hooks and UI components should remain largely unchanged. TypeScript API response types can initially be maintained in the frontend and later generated from FastAPI's OpenAPI document if that proves useful.
-
-### File storage
-
-- Use a private, encrypted S3 bucket with public access blocked.
-- Store object keys in PostgreSQL instead of permanent Supabase public URLs.
-- Prefix every object with the tenant ID, for example `tenants/{tenantId}/sires/{sireId}/...`.
-- Have the API issue short-lived presigned upload and download URLs after checking membership.
-- Add content type, file size, and allowed-extension validation.
-- Add CloudFront only if image delivery or caching needs justify it.
-
-### Notifications
-
-- Reuse the FastAPI application image with Python worker entry points:
-  - `notify-low-nitrogen`
-  - `notify-low-stock`
-  - `notify-periodic-reminder`
-- EventBridge Scheduler starts an ECS Fargate task for each schedule.
-- Configure retry limits and a dead-letter queue.
-- Retain Resend for the first migration by storing its key in Secrets Manager.
-- Consider SES as a separate follow-up, not as part of the critical path.
-- Make notification jobs idempotent because schedules can be delivered more than once.
-
-## 7. Terraform organization
-
-Suggested layout:
-
-```text
-infra/
-  bootstrap/
-  modules/
-    network/
-    security/
-    ecr/
-    database/
-    cognito/
-    load-balancer/
-    ecs-application/
-    object-storage/
-    scheduler/
-    observability/
-    dns/
-  environments/
-    dev/
-    staging/
-    production/
+```bash
+./scripts/put-supabase-secrets.sh dev     # store Supabase URL + anon key
+./scripts/build-and-push.sh dev [tag]     # build, push to ECR (defaults to git sha)
+# set image_tag in infra/terraform/dev.tfvars
+./scripts/deploy-infra.sh apply           # plan/apply; creates state backend if absent
+./scripts/destroy-infra.sh destroy        # teardown; never removes state or lock table
 ```
 
-### Terraform-managed resources
-
-- VPC, subnets, routing, NAT, and VPC endpoints.
-- Security groups and IAM roles/policies.
-- ECR repositories with image scanning and lifecycle rules.
-- ECS cluster, task definitions, services, target groups, and autoscaling.
-- ALB listeners, HTTPS redirect, health checks, and access logs.
-- ACM certificates for the apex and wildcard domain.
-- Route 53 apex and wildcard alias records.
-- RDS PostgreSQL instance, subnet/parameter groups, backups, encryption, monitoring, and deletion protection.
-- RDS Proxy when introduced.
-- Secrets Manager secret metadata and ECS access policies.
-- Cognito user pool, app clients, and email configuration.
-- S3 application and ALB-log buckets.
-- EventBridge schedules, task roles, retry policies, and DLQ.
-- CloudWatch log groups, dashboards, alarms, and SNS alarm destination.
-- Optional WAF for production.
-
-### State and secret rules
-
-- Bootstrap a versioned, encrypted S3 remote-state backend with locking.
-- Use separate state per environment.
-- Do not put application secret values in `.tfvars`.
-- Prefer RDS-managed master credentials and a separate least-privileged application credential.
-- Store the Resend key and other runtime secrets outside Terraform plaintext/state.
-- ECS secret environment injection is a snapshot at task startup; restart tasks after rotating those secrets, or load/cache them at runtime when automatic rotation is required.
-
-### Deployment rules
-
-- Terraform creates infrastructure but does not build images or run database DDL.
-- CI builds immutable images, scans them, pushes them to ECR, and deploys an image digest.
-- Run Alembic migrations as a one-off ECS task before the new FastAPI deployment.
-- Use GitHub Actions with AWS OIDC and short-lived deployment roles rather than stored AWS access keys.
-- Production plans require review before apply.
-
-## 8. Phased delivery plan
-
-### Phase 0 — Baseline and decisions
-
-Deliverables:
-
-- Move or clone the actual application source into the new working repository.
-- Record architecture decisions for auth, tenancy, region, environments, and domain.
-- Run the existing test/build suite and capture a baseline.
-- Inventory Supabase row counts, users, storage objects, database functions, and current cron schedules.
-- Confirm backup and restore procedures before making migration changes.
-
-Exit criteria:
-
-- The source repository is reproducible locally.
-- A sanitized configuration inventory exists.
-- A Supabase database and storage backup has been restored successfully to a test location.
-
-### Phase 1 — Existing application on ECS, still using Supabase
-
-Deliverables:
-
-- Multi-stage frontend image: Node build stage and unprivileged Nginx runtime.
-- Nginx SPA fallback plus the existing PWA/service-worker cache headers and security headers.
-- Initial Terraform for VPC, ECR, ECS Fargate, ALB, ACM, Route 53, logs, and alarms.
-- Nonproduction hostname such as `aws-dev.<domain>`.
-- Supabase redirect/origin configuration updated for the AWS hostname.
-- Remove or conditionally disable Vercel-only analytics packages.
-
-Important: `VITE_SUPABASE_URL` and the anon key are public build-time configuration, not server secrets. Do not place sensitive service-role keys in the frontend or image.
-
-Exit criteria:
-
-- Login, logout, sign-up/invitation, password reset, dashboard, CRUD, reports, and image upload work through the AWS URL.
-- Direct access to a nested SPA route works.
-- The PWA service worker updates correctly.
-- ECS replaces unhealthy tasks and ALB health checks pass.
-- CloudWatch contains application/access logs and a basic alarm is tested.
-
-### Phase 2 — Single-tenant all-AWS vertical slice
-
-Deliverables:
-
-- RDS PostgreSQL in private subnets.
-- Portable baseline schema and migration tooling.
-- Cognito User Pool.
-- API skeleton with JWT validation, database transaction context, health checks, and structured logs.
-- One end-to-end resource, recommended `customers`, migrated from Supabase calls to `/api`.
-- One test tenant and tenant membership.
-
-Exit criteria:
-
-- A Cognito user on one subdomain can create/read/update/delete customers in RDS.
-- Requests without a token, for an unknown tenant, or without membership are rejected.
-- A cross-tenant integration test fails closed at both API and RLS layers.
-
-### Phase 3 — Complete Supabase capability replacement
-
-Deliverables:
-
-- Migrate every frontend API module.
-- Port stored procedures, searches, views, reports, and activity logging.
-- S3 sire-image flow.
-- EventBridge/Fargate notification workers.
-- Cognito invitation and password reset flows.
-- Remove Supabase and Vercel runtime dependencies from the application.
-
-Exit criteria:
-
-- The full regression suite passes against AWS services.
-- No browser request targets Supabase.
-- No production runtime requires Supabase keys or URLs.
-- Notification retries and duplicate-delivery behavior have been tested.
-
-### Phase 4 — Multi-tenancy and wildcard subdomains
-
-Deliverables:
-
-- Tenant and membership schema.
-- Tenant-aware unique constraints, foreign keys, indexes, views, and RLS.
-- Wildcard ACM certificate and Route 53 record.
-- Host-based tenant resolver.
-- Tenant admin invitation flow.
-- Provision the existing business as the first tenant and backfill all rows.
-
-Exit criteria:
-
-- Two test tenants can use the same deployment concurrently.
-- Automated negative tests cover every tenant-owned table and object-storage prefix.
-- Changing the hostname or tenant ID in a request cannot expose another tenant's data.
-- A new logical tenant requires a database onboarding transaction, not an infrastructure deployment.
-
-### Phase 5 — Production hardening and cutover
-
-Deliverables:
-
-- Production Multi-AZ RDS, backups, point-in-time recovery, deletion protection, and restore drill.
-- ECS autoscaling, deployment circuit breaker, minimum healthy capacity, and rollback test.
-- WAF/rate-control decision, security headers, dependency/container scanning, and least-privilege review.
-- Dashboards and alarms for ALB 4xx/5xx, target health, ECS CPU/memory/restarts, RDS CPU/storage/connections, worker failures, and DLQ depth.
-- Data migration rehearsal and timed cutover runbook.
-
-Exit criteria:
-
-- Recovery objectives are documented and tested.
-- A production-like load test passes.
-- The team has completed a rollback exercise.
-- The final data and DNS cutover completes with reconciled row/object counts.
-
-## 9. Data cutover runbook
-
-1. Lower DNS TTL well before cutover.
-2. Take and verify a fresh Supabase database/storage backup.
-3. Create the initial tenant and user mapping in RDS.
-4. Load transformed schema and bulk data into RDS.
-5. Copy storage objects to tenant-prefixed S3 keys and reconcile counts/checksums.
-6. Invite or activate Cognito users.
-7. Run automated integrity, row-count, foreign-key, and tenant-isolation checks.
-8. Put the Supabase-backed application in maintenance/read-only mode.
-9. Apply the final data delta or repeat the short data load.
-10. Deploy the AWS-only application and run smoke tests.
-11. Switch Route 53 records.
-12. Monitor errors, auth failures, DB load, worker results, and user reports.
-13. Keep Supabase read-only for an agreed rollback window.
-14. Decommission Supabase only after formal acceptance and final backup retention.
-
-Rollback means pointing DNS back to the old application and reopening writes there. Once writes begin in both systems, rollback requires a reverse-data reconciliation process; avoid dual writes unless that mechanism is intentionally designed.
-
-## 10. Tenant compute decision
-
-The phrase "one instance per tenant" needs a deliberate interpretation.
-
-### Recommended: logical instance per tenant
-
-All tenants share an autoscaled ECS service and application image. Isolation comes from:
-
-- Subdomain-derived tenant context.
-- Membership authorization.
-- Tenant filters and RLS.
-- Tenant-aware foreign keys.
-- Tenant-prefixed S3 objects.
-- Tenant-scoped logs and audit records.
-
-Benefits: substantially lower cost, simpler deployments, immediate tenant onboarding, better task utilization, and no ALB rule/target-group growth per tenant.
-
-### Optional: dedicated ECS service per tenant
-
-If dedicated compute is a contractual requirement, create a reusable Terraform `tenant_service` module with:
-
-- One ECS service and minimum task count per tenant.
-- One target group per tenant.
-- One ALB host-header listener rule per tenant.
-- An injected immutable tenant ID.
-- Per-tenant autoscaling, log group, and alarms.
-
-This still uses the shared multitenant RDS schema, so it does not provide database-level physical isolation. It also creates steady per-tenant cost, slower onboarding, more RDS connections, more ALB resources, and an infrastructure deployment for each tenant. Validate AWS service quotas and expected tenant count before selecting it.
-
-A practical middle path is shared compute by default and a separate ECS service or deployment tier only for premium tenants with an explicit isolation requirement.
-
-## 11. Test strategy
-
-Required automated test layers:
-
-- Unit tests for tenant host parsing, role rules, validation, and data mapping.
-- API integration tests against PostgreSQL for every resource.
-- RLS tests using the real runtime database role.
-- A tenant-isolation matrix that attempts select/insert/update/delete with mismatched tenants.
-- Storage tests that attempt cross-tenant presigning and object access.
-- Auth tests for expired, wrong issuer, wrong client, wrong token type, suspended user, and removed membership.
-- Migration tests from a sanitized Supabase snapshot.
-- Browser smoke tests for login, reset, CRUD, reports, uploads, offline/PWA update, and subdomain navigation.
-- Notification idempotency and retry tests.
-- Infrastructure checks for public exposure, encryption, backup, and least privilege.
-
-## 12. Initial implementation backlog
-
-The first build slice should be:
-
-1. Put the real source in this workspace and establish the build/test baseline.
-2. Add the frontend Dockerfile, Nginx configuration, `.dockerignore`, and local container smoke test.
-3. Bootstrap Terraform state and the dev environment.
-4. Implement network, ECR, ECS, ALB, ACM, Route 53, and CloudWatch modules.
-5. Add CI image build/push/deploy.
-6. Deploy the existing Supabase-backed app to an AWS development hostname.
-7. Verify the Phase 1 exit criteria.
-8. Create the API skeleton and portable database migrations for the Phase 2 `customers` vertical slice.
-
-## 13. Decisions needed before implementation
-
-These choices do not block the plan, but must be resolved during Phase 0:
-
-- AWS account structure and target region.
-- Actual apex domain and whether Route 53 already hosts it.
-- Required environments: dev, staging, production.
-- Whether "one instance per tenant" means logical tenancy or dedicated ECS compute.
-- Expected tenant count over the next 12–24 months.
-- Whether users may belong to multiple tenants.
-- Whether forced password reset during auth migration is acceptable.
-- Allowed cutover downtime and required rollback window.
-- Required recovery objectives, audit retention, and compliance controls.
-- Whether to keep Resend or migrate email to SES after the core move.
-
-## 14. Rough sequencing estimate
-
-For one engineer familiar with the application and AWS:
-
-- Phase 0: 2–4 working days.
-- Phase 1: 3–6 working days.
-- Phase 2: 1–2 weeks.
-- Phase 3: 2–4 weeks.
-- Phase 4: 1–2 weeks.
-- Phase 5 and production rehearsal: 1–2 weeks.
-
-The largest uncertainty is the backend rewrite because the browser currently relies on Supabase query semantics across all business modules. Dedicated compute per tenant, zero-downtime auth migration, or stricter compliance requirements will extend the schedule.
-
-## 15. Relevant AWS references
-
-- [Amazon Cognito user pools](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools.html)
-- [Authentication with Cognito user pools](https://docs.aws.amazon.com/cognito/latest/developerguide/authentication.html)
-- [ECS service load balancing](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html)
-- [EventBridge Scheduler for ECS tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/tasks-scheduled-eventbridge-scheduler.html)
-- [Secrets Manager secrets in ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data-tutorial.html)
-- [RDS PostgreSQL pg_cron](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/PostgreSQL_pg_cron.html)
-- [ACM wildcard certificate behavior](https://docs.aws.amazon.com/acm/latest/userguide/acm-certificate-characteristics.html)
+Terraform never builds images and never runs DDL. State lives in S3
+(`genehub-infra`) with DynamoDB locking (`terraform-locks`), created on demand
+by `deploy-infra.sh`.
+
+`build-and-push.sh` forces `--platform linux/amd64` (Apple Silicon would
+otherwise produce an arm64 image that dies with `exec format error` on Fargate)
+and `--provenance=false --sbom=false` (ECR rejects BuildKit's attestation
+manifests with a bare 400).
+
+### Environments
+
+| | Hosting | Supabase | Domain |
+|---|---|---|---|
+| Production | Vercel | `xnusvnwzvinhopkwmljl` | real domain |
+| Development | AWS ECS | `tveluoilwhbfpyqxqnzf` | `daltongorham.com` |
+
+Separate Supabase projects are what make schema work safe. Before that split,
+dev and production shared one database and any migration would have been applied
+to live customer data.
+
+## 6. Remaining work
+
+### Before production cutover
+
+1. **Apply `001`–`007` to production**, having resolved the `rck`-specific data
+   in `002`/`006` and the missing `pg_net`.
+2. **Notifications are untouched.** Production still runs `pg_cron` + `pg_net` +
+   Resend and three edge functions. None are tenant-aware — they will email
+   across tenant boundaries once production is multi-tenant.
+3. **Storage is untouched.** Sire images sit in a public `sire-images` bucket
+   with no tenant prefix and no per-tenant access control. Currently the largest
+   hole in the isolation story.
+4. **Point the real domain at AWS** and retire Vercel.
+
+### Quality
+
+- `TODO.md` — landing page redesign, and verification of the shell caching fix
+- 47 tests fail on `localStorage.clear is not a function`, a jsdom/vitest
+  environment issue predating this work. User-settings behaviour has no coverage.
+- Main bundle is 748 kB (194 kB gzipped); no route-level code splitting
+- `npm audit` reports 16 vulnerabilities, 2 critical
+- Self-serve signup is anonymous and unthrottled. Needs email verification, a
+  CAPTCHA, or a signup code before it is genuinely public.
+
+### Deferred by choice
+
+- **Offline support.** The service worker caches nothing; it exists only for
+  installability. Real offline means persisting React Query to IndexedDB and
+  designing for offline writes.
+- **RDS.** The isolated data tier and its security group are already in place.
+- **Roles.** Flat membership today. Adding roles later means a column and a
+  policy revision, not a redesign.
+
+## 7. What each layer actually protects
+
+Worth stating plainly, because these are easy to confuse:
+
+- **Hostname** — branding and routing. Not a boundary. An RCK user at Bar 7's
+  subdomain sees Bar 7's logo and their own data.
+- **JWT + `current_tenant_id()`** — the real boundary. Determines every row the
+  user can reach.
+- **RLS** — enforces it on every table and view.
+- **Composite FKs** — prevent cross-tenant references even from callers RLS
+  would allow, such as the service role.
+- **Frontend checks** — remove confusing states. They stop nothing.
+
+## 8. Decisions recorded
+
+| Decision | Outcome |
+|---|---|
+| Replace Supabase with RDS/Cognito/FastAPI | **No.** No requirement justified the cost |
+| Tenancy by subdomain or URL path | **Subdomain.** Origin isolation, and the PWA works unchanged |
+| Users in multiple tenants | **No.** One tenant per user |
+| Roles within a tenant | **None.** Membership grants access |
+| `owner_type` value | Renamed `'rck'` → `'internal'`; label comes from tenant name |
+| Repo of record | This one. Frontend copied in without history |
+| Region / domain | `us-east-1`; `daltongorham.com` as a stand-in |
+
+## 9. The abandoned path, and what would revive it
+
+The original plan's Phases 2 and 3 — RDS PostgreSQL, Cognito user pools, a
+Python/FastAPI backend, S3 storage, EventBridge workers — are not being built.
+
+What would justify revisiting:
+
+- A customer contract requiring data isolation or a specific region
+- Postgres extensions Supabase does not permit
+- Connection or performance limits that cannot be resolved within Supabase
+- Wanting a server-side authorisation layer rather than relying solely on RLS
+- Cost consolidation, once ECS and NAT are being paid for regardless
+
+The schema work already done transfers directly: `tenant_id`, tenant-aware
+constraints, and composite foreign keys are ordinary Postgres and would move to
+RDS unchanged. What would still need building is the API, the auth migration,
+and the storage move.

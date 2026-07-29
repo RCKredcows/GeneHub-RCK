@@ -1,95 +1,27 @@
-// Service Worker for GeneHub PWA
-const CACHE_NAME = 'genehub-v1';
-const STATIC_CACHE = 'genehub-static-v1';
+// Service worker for GeneHub. Caches nothing on purpose.
+//
+// It exists only so Chrome will offer to install the app, which requires a
+// registered fetch handler. Offline support was never real -- Supabase requests
+// were always excluded and React Query keeps its cache in memory -- and the
+// caching it did do duplicated nginx while serving stale shells after a deploy.
 
-// Core assets to cache on install
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
-];
-
-// Install event - cache static assets
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
-  event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then(cache => {
-        console.log('[SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .then(() => self.skipWaiting())
-  );
+self.addEventListener('install', () => {
+  self.skipWaiting();
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  // Clears caches left by earlier versions, which is how a device holding a
+  // stale shell recovers.
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames
-          .filter(name => name !== CACHE_NAME && name !== STATIC_CACHE)
-          .map(name => caches.delete(name))
-      );
-    }).then(() => self.clients.claim())
+    caches.keys()
+      .then((names) => Promise.all(names.map((name) => caches.delete(name))))
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch event - network first, fallback to cache
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  
-  // Skip non-GET requests
-  if (request.method !== 'GET') return;
-  
-  // Skip Supabase API requests (always need fresh data)
-  if (request.url.includes('supabase.co')) {
-    return;
-  }
+// No respondWith, so the browser handles every request itself.
+self.addEventListener('fetch', () => {});
 
-  event.respondWith(
-    fetch(request)
-      .then(response => {
-        // Clone response before caching
-        const responseClone = response.clone();
-        
-        // Cache successful responses
-        if (response.status === 200) {
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, responseClone);
-          });
-        }
-        
-        return response;
-      })
-      .catch(() => {
-        // Network failed, try cache
-        return caches.match(request).then(cachedResponse => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          
-          // Return offline page for navigation requests
-          if (request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
-          
-          return new Response('Offline - content not available', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: new Headers({
-              'Content-Type': 'text/plain'
-            })
-          });
-        });
-      })
-  );
-});
-
-// Handle messages from client
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
