@@ -1,8 +1,3 @@
-# The domain is not yet delegated to Route 53, so Terraform creates the hosted
-# zone and you point the registrar's nameservers at it once (see the
-# route53_nameservers output). Nothing resolves through this zone until that
-# delegation happens, which is what makes it safe to apply early.
-
 locals {
   app_fqdn = var.domain_name
 
@@ -57,9 +52,7 @@ resource "aws_route53_record" "certificate_validation" {
   allow_overwrite = true
 }
 
-# Gated behind a variable: ACM cannot validate until the registrar delegates to
-# this zone, and without the gate the first apply blocks for 45 minutes and
-# then fails. Delegate the nameservers, then set validate_certificate = true.
+
 resource "aws_acm_certificate_validation" "main" {
   count = var.validate_certificate ? 1 : 0
 
