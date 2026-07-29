@@ -32,6 +32,8 @@ function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [tenantMissing, setTenantMissing] = useState(false)
+  // Set when a valid account signs in at a workspace it does not belong to.
+  const [deniedSlug, setDeniedSlug] = useState<string | null>(null)
 
   useEffect(() => {
     // Load dark mode preference on app start
@@ -53,30 +55,27 @@ function App() {
       try {
         if (session) {
           const own = await fetchCurrentTenant()
-          applyTenant(own)
 
-          // Signed in at another tenant's subdomain: send them to their own,
-          // keeping the path so a deep link still lands where it was aimed.
-          //
-          // Sign out first. Supabase keeps the session in localStorage, which
-          // is scoped per origin, so it cannot travel to the other subdomain
-          // anyway -- and left behind it would sign them straight back in here
-          // on the next visit, only to bounce them again. scope 'local' clears
-          // this origin without invalidating the account elsewhere.
+          // Signed in at a workspace this account does not belong to. Refuse
+          // and say so, rather than bouncing them somewhere else: the session
+          // lives in this origin's localStorage and cannot travel to another
+          // subdomain anyway, so a redirect only produced a second login.
           if (own?.slug && hostSlug && hostSlug !== own.slug) {
-            const destination =
-              `${window.location.protocol}//${tenantHostname(own.slug)}` +
-              `${window.location.pathname}${window.location.search}`
-
             try {
               await signOut()
             } catch {
-              // Redirecting matters more than a clean sign-out.
+              // Saying no matters more than a clean sign-out.
             }
-            window.location.replace(destination)
+            // Keep this workspace's branding: the message is about where the
+            // user is, not where they belong.
+            applyTenant(await fetchTenantBranding(hostSlug).catch(() => null))
+            setDeniedSlug(own.slug)
             return
           }
+
+          applyTenant(own)
           setTenantMissing(false)
+          setDeniedSlug(null)
           return
         }
 
@@ -113,10 +112,19 @@ function App() {
         setLoading(false)
       })
 
-    // Listen for auth changes
-    const { data: { subscription } } = onAuthStateChange(async (_event, session) => {
-      await hydrateTenant(session)
+    // Listen for auth changes.
+    //
+    // This callback must stay synchronous and must not call Supabase. The auth
+    // client holds a lock while it runs, so awaiting another Supabase request
+    // here deadlocks: the promise never settles, setSession never runs, and the
+    // UI freezes until a reload. That was the hanging "Logging in..." and the
+    // sign-out that only took effect after a refresh.
+    //
+    // Session state updates immediately; tenant hydration is deferred to a
+    // later tick, once the lock has been released.
+    const { data: { subscription } } = onAuthStateChange((_event, session) => {
       setSession(session)
+      setTimeout(() => { void hydrateTenant(session) }, 0)
     })
 
     return () => {
@@ -145,6 +153,47 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+    )
+  }
+
+  // Valid credentials, wrong workspace. They have already been signed out of
+  // this origin; this only explains why.
+  if (deniedSlug) {
+    const ownHost = tenantHostname(deniedSlug)
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100dvh',
+        gap: '0.75rem',
+        padding: '1rem',
+        textAlign: 'center'
+      }}>
+        <h1 style={{ fontSize: '1.25rem', margin: 0 }}>You don't have access to this workspace</h1>
+        <p style={{ margin: 0, color: '#666', maxWidth: '32rem' }}>
+          Your account belongs to a different workspace. Sign in at{' '}
+          <strong>{ownHost}</strong> instead.
+        </p>
+        <a href={`${window.location.protocol}//${ownHost}`}>
+          Go to {ownHost}
+        </a>
+        <button
+          type="button"
+          onClick={() => setDeniedSlug(null)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#666',
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            padding: 0,
+          }}
+        >
+          Use a different account
+        </button>
+      </div>
     )
   }
 
