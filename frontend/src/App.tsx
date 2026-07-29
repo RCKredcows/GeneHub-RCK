@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { getSession, onAuthStateChange } from './api'
 import { fetchCurrentTenant, fetchTenantBranding } from './api/tenants'
-import { applyTenant, resetTenant, tenantSlugFromHostname } from './config/tenant'
+import {
+  applyTenant,
+  resetTenant,
+  tenantSlugFromHostname,
+  tenantHostname,
+  baseDomain,
+} from './config/tenant'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import OfflineBanner from './components/common/OfflineBanner'
 import Login from './pages/Login'
@@ -24,6 +30,7 @@ import type { Session } from '@supabase/supabase-js'
 function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [tenantMissing, setTenantMissing] = useState(false)
 
   useEffect(() => {
     // Load dark mode preference on app start
@@ -35,17 +42,45 @@ function App() {
     // Resolve branding before the first paint. A signed-in user's own tenant is
     // authoritative; falling back to the subdomain is what brands the login
     // screen, where there is no session to read a tenant from.
+    //
+    // The hostname check below is presentation only. Row level security already
+    // guarantees a user reads nothing outside their own tenant regardless of
+    // the URL, so this removes a confusing state rather than closing a hole.
     const hydrateTenant = async (session: Session | null) => {
+      const hostSlug = tenantSlugFromHostname()
+
       try {
         if (session) {
-          applyTenant(await fetchCurrentTenant())
+          const own = await fetchCurrentTenant()
+          applyTenant(own)
+
+          // Signed in at another tenant's subdomain: send them to their own,
+          // keeping the path so a deep link still lands where it was aimed.
+          if (own?.slug && hostSlug && hostSlug !== own.slug) {
+            window.location.replace(
+              `${window.location.protocol}//${tenantHostname(own.slug)}${window.location.pathname}${window.location.search}`
+            )
+            return
+          }
+          setTenantMissing(false)
           return
         }
-        const slug = tenantSlugFromHostname()
-        applyTenant(slug ? await fetchTenantBranding(slug) : null)
+
+        if (!hostSlug) {
+          applyTenant(null)
+          setTenantMissing(false)
+          return
+        }
+
+        const branding = await fetchTenantBranding(hostSlug)
+        applyTenant(branding)
+        // A slug that matches no active tenant is a typo or a suspended
+        // workspace. Saying so beats silently showing an unbranded login.
+        setTenantMissing(!branding)
       } catch {
         // Branding is cosmetic; a failure here must not block sign-in.
         resetTenant()
+        setTenantMissing(false)
       }
     }
 
@@ -76,6 +111,32 @@ function App() {
         minHeight: '100dvh'
       }}>
         Loading...
+      </div>
+    )
+  }
+
+  // The subdomain names no active workspace. Showing the ordinary login form
+  // here would let a typo look like a working entry point.
+  if (tenantMissing) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100dvh',
+        gap: '0.75rem',
+        padding: '1rem',
+        textAlign: 'center'
+      }}>
+        <h1 style={{ fontSize: '1.25rem', margin: 0 }}>Workspace not found</h1>
+        <p style={{ margin: 0, color: '#666', maxWidth: '32rem' }}>
+          There is no active workspace at <strong>{window.location.hostname}</strong>.
+          Check the address, or contact whoever invited you.
+        </p>
+        <a href={`${window.location.protocol}//${baseDomain()}`}>
+          Go to {baseDomain()}
+        </a>
       </div>
     )
   }

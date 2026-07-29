@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { TenantConfig } from '../config/tenant';
+import { DEFAULT_TENANT, type TenantConfig } from '../config/tenant';
 
 /**
  * The signed-in user's tenant.
@@ -42,16 +42,21 @@ interface TenantRow {
   report_footer?: string | null;
 }
 
+/**
+ * Optional branding falls back to the neutral default rather than an empty
+ * string. An empty src renders as a broken image showing alt text, which looks
+ * like a bug to the tenant rather than like an unset field.
+ */
 function toConfig(row: TenantRow): TenantConfig {
-  const name = row.name ?? '';
-  const legalName = row.legal_name ?? name;
+  const name = row.name || DEFAULT_TENANT.name;
+  const legalName = row.legal_name || name;
 
   return {
     slug: row.slug ?? '',
     name,
     legalName,
-    logoUrl: row.logo_url ?? '',
+    logoUrl: row.logo_url || DEFAULT_TENANT.logoUrl,
     loginHint: row.login_hint ?? '',
-    reportFooter: row.report_footer ?? legalName,
+    reportFooter: row.report_footer || legalName,
   };
 }

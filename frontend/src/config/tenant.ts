@@ -73,6 +73,20 @@ export function tenantSlugFromHostname(hostname: string = window.location.hostna
 }
 
 /**
+ * The registrable domain, with any tenant label stripped.
+ * bar7.daltongorham.com -> daltongorham.com
+ */
+export function baseDomain(hostname: string = window.location.hostname): string {
+  const labels = hostname.split('.');
+  return labels.length >= 3 ? labels.slice(1).join('.') : hostname;
+}
+
+/** The hostname a given tenant should be reached at. */
+export function tenantHostname(slug: string, hostname: string = window.location.hostname): string {
+  return `${slug}.${baseDomain(hostname)}`;
+}
+
+/**
  * Who owns a sire or an inventory item.
  *
  * `internal` means the tenant running this system owns it. It was stored as
