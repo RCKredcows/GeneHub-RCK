@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { getSession, onAuthStateChange } from './api'
+import { getSession, onAuthStateChange, signOut } from './api'
 import { fetchCurrentTenant, fetchTenantBranding } from './api/tenants'
 import {
   applyTenant,
@@ -56,10 +56,23 @@ function App() {
 
           // Signed in at another tenant's subdomain: send them to their own,
           // keeping the path so a deep link still lands where it was aimed.
+          //
+          // Sign out first. Supabase keeps the session in localStorage, which
+          // is scoped per origin, so it cannot travel to the other subdomain
+          // anyway -- and left behind it would sign them straight back in here
+          // on the next visit, only to bounce them again. scope 'local' clears
+          // this origin without invalidating the account elsewhere.
           if (own?.slug && hostSlug && hostSlug !== own.slug) {
-            window.location.replace(
-              `${window.location.protocol}//${tenantHostname(own.slug)}${window.location.pathname}${window.location.search}`
-            )
+            const destination =
+              `${window.location.protocol}//${tenantHostname(own.slug)}` +
+              `${window.location.pathname}${window.location.search}`
+
+            try {
+              await signOut()
+            } catch {
+              // Redirecting matters more than a clean sign-out.
+            }
+            window.location.replace(destination)
             return
           }
           setTenantMissing(false)
@@ -84,12 +97,20 @@ function App() {
       }
     }
 
-    // Get initial session
-    getSession().then(async ({ session }) => {
-      await hydrateTenant(session)
-      setSession(session)
-      setLoading(false)
-    })
+    // Get initial session. The finally matters: without it any rejection here
+    // leaves the app on "Loading..." permanently, with no way out but a reload.
+    getSession()
+      .then(async ({ session }) => {
+        await hydrateTenant(session)
+        setSession(session)
+      })
+      .catch((err) => {
+        console.error('Session bootstrap failed:', err)
+        setSession(null)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
 
     // Listen for auth changes
     const { data: { subscription } } = onAuthStateChange(async (_event, session) => {
