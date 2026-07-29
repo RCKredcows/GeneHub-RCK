@@ -1,0 +1,10 @@
+/* App-specific styles */
+
+/* Smooth transitions for dark mode */
+body,
+.sidebar,
+.dashboard,
+.customers,
+.settings {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

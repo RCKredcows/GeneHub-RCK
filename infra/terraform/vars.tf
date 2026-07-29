@@ -76,6 +76,35 @@ variable "enable_wildcard_certificate" {
   default     = true
 }
 
+variable "image_tag" {
+  description = "Frontend image tag to run. Push it with scripts/build-and-push.sh before applying; Terraform does not build images."
+  type        = string
+}
+
+variable "task_cpu" {
+  description = "Fargate CPU units. 256 is a quarter vCPU, plenty for serving static files."
+  type        = number
+  default     = 256
+}
+
+variable "task_memory" {
+  description = "Fargate memory in MiB. Must be a valid pairing with task_cpu."
+  type        = number
+  default     = 512
+}
+
+variable "desired_count" {
+  description = "Number of tasks to run. Two spreads across AZs; one is fine for dev."
+  type        = number
+  default     = 1
+}
+
+variable "log_retention_days" {
+  description = "Retention for the application log group."
+  type        = number
+  default     = 30
+}
+
 variable "health_check_path" {
   description = "Path the ALB polls on application tasks. Must return 200 without authentication."
   type        = string

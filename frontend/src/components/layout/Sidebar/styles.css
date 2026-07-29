@@ -1,0 +1,223 @@
+/* Sidebar Overlay (backdrop) */
+.sidebar__hamburger {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  background: hsl(0, 0%, 0%, 0.5);
+  animation: fadeIn 0.2s ease;
+  /* Ensure overlay covers safe areas on iOS PWA */
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  inline-size: 16rem;
+  block-size: 100dvh;
+  background: var(--color-background);
+  border-inline-end: 1px solid var(--color-border-light);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  overflow: hidden;
+  /* iOS PWA safe area support */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.sidebar--open {
+  transform: translateX(0);
+}
+
+.sidebar__container {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Header */
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block-end: 1rem;
+  margin-block-end: 1rem;
+  border-block-end: 1px solid var(--color-border-light);
+}
+
+.sidebar__logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--font-family-heading);
+  color: var(--color-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sidebar__logo-gene {
+  color: var(--color-brand);
+  text-shadow: 
+    0 0 20px rgba(61, 78, 122, 0.3),
+    0 0 40px rgba(61, 78, 122, 0.15),
+    0 2px 8px rgba(61, 78, 122, 0.2);
+}
+
+.sidebar__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
+  color: var(--color-text-light);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar__close:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+.sidebar__close:active {
+  transform: scale(0.95);
+}
+
+/* Navigation */
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.75rem;
+  padding-inline: 1rem;
+  background: transparent;
+  color: var(--color-text-light);
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: start;
+  inline-size: 100%;
+  text-decoration: none;
+}
+
+.sidebar__nav-item:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+.sidebar__nav-item--active {
+  background: var(--color-primary);
+  color: var(--color-background);
+}
+
+.sidebar__nav-icon {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.sidebar__nav-label {
+  white-space: nowrap;
+}
+
+/* Footer */
+.sidebar__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-block-start: 1rem;
+  margin-block-start: auto;
+  border-block-start: 1px solid var(--color-border-light);
+}
+
+/* User Info */
+.sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.75rem;
+  padding-inline: 1rem;
+  background: var(--color-background-secondary);
+  border-radius: 0.5rem;
+}
+
+.sidebar__user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  background: var(--color-primary);
+  color: var(--color-background);
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.sidebar__user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-inline-size: 0;
+}
+
+.sidebar__user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__user-email {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tablet and up - Desktop sidebar behavior */
+@media (min-width: 768px) {
+  .sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar:not(.sidebar--open) {
+    transform: translateX(-100%);
+  }
+}

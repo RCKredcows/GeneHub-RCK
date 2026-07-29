@@ -1,0 +1,83 @@
+/* PasswordInput Component - Mobile First */
+
+.password-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.password-input__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.password-input__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input__field {
+  inline-size: 100%;
+  padding-block: 0.75rem;
+  padding-inline: 1rem;
+  padding-inline-end: 3rem;
+  font-size: 1rem;
+  color: var(--color-text);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.password-input__field:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px var(--color-brand-light);
+}
+
+.password-input__field--error {
+  border-color: hsl(0, 84%, 60%);
+}
+
+.password-input__field:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.password-input__toggle {
+  position: absolute;
+  inset-inline-end: 0.75rem;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.password-input__toggle:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+.password-input__toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.password-input__toggle svg {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+}
+
+.password-input__error {
+  font-size: 0.8125rem;
+  color: hsl(0, 84%, 40%);
+  margin: 0;
+}

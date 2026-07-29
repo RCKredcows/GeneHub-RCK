@@ -1,0 +1,139 @@
+/* Confirm Modal - Mobile First */
+
+.confirm-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.confirm-modal__container {
+  background: var(--color-background);
+  border-radius: 1rem;
+  padding: 2rem;
+  inline-size: 100%;
+  max-inline-size: 28rem;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(1rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.confirm-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  margin-inline: auto;
+  margin-block-end: 1rem;
+  border-radius: 50%;
+}
+
+.confirm-modal__icon--danger {
+  background: hsl(0, 70%, 95%);
+  color: hsl(0, 70%, 50%);
+}
+
+.confirm-modal__icon--warning {
+  background: hsl(38, 92%, 95%);
+  color: hsl(38, 92%, 50%);
+}
+
+.confirm-modal__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  margin-block-end: 0.5rem;
+}
+
+.confirm-modal__message {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  margin: 0;
+  margin-block-end: 1.5rem;
+  line-height: 1.5;
+}
+
+.confirm-modal__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.confirm-modal__btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  flex: 1;
+}
+
+.confirm-modal__btn--cancel {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+.confirm-modal__btn--cancel:hover {
+  background: var(--color-background-tertiary);
+}
+
+.confirm-modal__btn--confirm {
+  color: white;
+}
+
+.confirm-modal__btn--danger {
+  background: hsl(0, 70%, 50%);
+}
+
+.confirm-modal__btn--danger:hover {
+  background: hsl(0, 70%, 45%);
+}
+
+.confirm-modal__btn--warning {
+  background: hsl(38, 92%, 50%);
+}
+
+.confirm-modal__btn--warning:hover {
+  background: hsl(38, 92%, 45%);
+}
+
+/* Tablet and up */
+@media (min-width: 48rem) {
+  .confirm-modal__actions {
+    justify-content: flex-end;
+  }
+
+  .confirm-modal__btn {
+    flex: 0 0 auto;
+    min-inline-size: 7rem;
+  }
+}

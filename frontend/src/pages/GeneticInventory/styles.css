@@ -1,0 +1,632 @@
+/* Genetic Inventory Page - Mobile First */
+
+.genetic-inventory {
+  min-block-size: 100dvh;
+  background: var(--color-background-secondary);
+}
+
+/* Main Content */
+.genetic-inventory__main {
+  padding-inline-start: 0;
+  min-block-size: 100dvh;
+}
+
+.genetic-inventory__content {
+  max-inline-size: 75rem;
+  margin-inline: auto;
+  padding: 1rem;
+}
+
+/* Header */
+.genetic-inventory__header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-block-end: 2rem;
+  padding-block-start: max(4rem, calc(3rem + env(safe-area-inset-top, 0px)));
+}
+
+.genetic-inventory__title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.genetic-inventory__subtitle {
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.genetic-inventory__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.genetic-inventory__report-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.genetic-inventory__report-btn:hover {
+  background: var(--color-background-secondary);
+  border-color: var(--color-text-muted);
+}
+
+.genetic-inventory__add-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-primary);
+  color: var(--color-background);
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.genetic-inventory__add-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Search Bar */
+.genetic-inventory__search {
+  margin-block-end: 1.5rem;
+}
+
+.genetic-inventory__search-input {
+  inline-size: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: border-color 0.2s ease;
+}
+
+.genetic-inventory__search-input:focus {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+.genetic-inventory__search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Type Filter Dropdown */
+.genetic-inventory__type-filter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: 1rem;
+}
+
+.genetic-inventory__ivf-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.genetic-inventory__ivf-toggle input {
+  cursor: pointer;
+}
+
+.genetic-inventory__type-select {
+  padding: 0.625rem 2rem 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--color-text);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  min-inline-size: 10rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.genetic-inventory__type-select:hover {
+  border-color: var(--color-border-dark);
+}
+
+.genetic-inventory__type-select:focus {
+  outline: none;
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px var(--color-brand-light);
+}
+
+/* Checked Out Filter Button */
+.genetic-inventory__checked-out-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.genetic-inventory__checked-out-btn:hover {
+  border-color: var(--color-border-dark);
+  color: var(--color-text);
+}
+
+.genetic-inventory__checked-out-btn--active {
+  background: color-mix(in srgb, #f59e0b 15%, transparent);
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.genetic-inventory__checked-out-btn--active:hover {
+  background: color-mix(in srgb, #f59e0b 25%, transparent);
+}
+
+/* Inventory List */
+.genetic-inventory__list {
+  margin-block-start: 2rem;
+}
+
+/* Cards */
+.genetic-inventory__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: 1.5rem;
+}
+
+.genetic-inventory__card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.genetic-inventory__card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-border);
+}
+
+.genetic-inventory__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.25rem;
+  border-block-end: 1px solid var(--color-border-light);
+}
+
+.genetic-inventory__card-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  flex: 1;
+}
+
+.genetic-inventory__type-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+/* Semen badges - color based on sex type */
+.genetic-inventory__type-badge--semen {
+  background: hsl(0, 0%, 92%);
+  color: hsl(0, 0%, 40%);
+}
+
+.genetic-inventory__type-badge--semen-male {
+  background: hsl(210, 70%, 92%);
+  color: hsl(210, 70%, 35%);
+}
+
+.genetic-inventory__type-badge--semen-female {
+  background: hsl(330, 70%, 92%);
+  color: hsl(330, 60%, 40%);
+}
+
+.genetic-inventory__type-badge--embryo {
+  background: hsl(0, 0%, 92%);
+  color: hsl(0, 0%, 40%);
+}
+
+.genetic-inventory__type-badge--embryo-male {
+  background: hsl(210, 70%, 92%);
+  color: hsl(210, 70%, 35%);
+}
+
+.genetic-inventory__type-badge--embryo-female {
+  background: hsl(330, 70%, 92%);
+  color: hsl(330, 60%, 40%);
+}
+
+:root[data-theme="dark"] .genetic-inventory__type-badge--semen {
+  background: hsl(0, 0%, 25%);
+  color: hsl(0, 0%, 70%);
+}
+
+:root[data-theme="dark"] .genetic-inventory__type-badge--semen-male {
+  background: hsl(210, 50%, 20%);
+  color: hsl(210, 70%, 70%);
+}
+
+:root[data-theme="dark"] .genetic-inventory__type-badge--semen-female {
+  background: hsl(330, 50%, 22%);
+  color: hsl(330, 60%, 72%);
+}
+
+:root[data-theme="dark"] .genetic-inventory__type-badge--embryo {
+  background: hsl(0, 0%, 25%);
+  color: hsl(0, 0%, 70%);
+}
+
+:root[data-theme="dark"] .genetic-inventory__type-badge--embryo-male {
+  background: hsl(210, 50%, 20%);
+  color: hsl(210, 70%, 70%);
+}
+
+:root[data-theme="dark"] .genetic-inventory__type-badge--embryo-female {
+  background: hsl(330, 50%, 22%);
+  color: hsl(330, 60%, 72%);
+}
+
+/* Badges Container */
+.genetic-inventory__badges {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* IVF Badge (for embryos only) */
+.genetic-inventory__sex-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.genetic-inventory__sex-badge--ivf {
+  background: hsl(45, 80%, 90%);
+  color: hsl(45, 70%, 30%);
+}
+
+:root[data-theme="dark"] .genetic-inventory__sex-badge--ivf {
+  background: hsl(45, 50%, 20%);
+  color: hsl(45, 70%, 70%);
+}
+
+.genetic-inventory__card-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.genetic-inventory__card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.genetic-inventory__card-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.genetic-inventory__card-action:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.genetic-inventory__card-action--delete:hover {
+  background: hsl(0, 70%, 95%);
+  color: hsl(0, 70%, 40%);
+}
+
+.genetic-inventory__card-body {
+  flex: 1;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.genetic-inventory__card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.genetic-inventory__card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.genetic-inventory__card-value {
+  font-size: 0.9375rem;
+  color: var(--color-text);
+}
+
+.genetic-inventory__card-link {
+  font-size: 0.9375rem;
+  color: var(--color-brand);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.genetic-inventory__card-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.genetic-inventory__card-field--highlight {
+  margin-block-start: 0.5rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px dashed var(--color-border-light);
+}
+
+.genetic-inventory__card-field--highlight .genetic-inventory__card-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--color-brand);
+}
+
+.genetic-inventory__card-field--highlight .genetic-inventory__card-value {
+  font-weight: 600;
+  color: var(--color-brand);
+}
+
+/* Card Footer with Quantity Editor */
+.genetic-inventory__card-footer {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border-block-start: 1px solid var(--color-border-light);
+  background: var(--color-background-secondary);
+}
+
+.genetic-inventory__card-footer .qty-editor {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.genetic-inventory__card-footer .qty-editor__display {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.genetic-inventory__card-footer .qty-editor__display-value {
+  font-size: 1.125rem;
+}
+
+.genetic-inventory__card-footer .qty-editor__display-label {
+  margin-block-start: 0;
+}
+
+/* Checked Out Footer Layout */
+.genetic-inventory__card-footer--checked-out {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.genetic-inventory__qty-display {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.genetic-inventory__qty-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.genetic-inventory__qty-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: lowercase;
+}
+
+/* Check In Button (for checked out items) */
+.genetic-inventory__checkin-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.genetic-inventory__checkin-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Loading Overlay */
+.genetic-inventory__loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.genetic-inventory__loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.genetic-inventory__loading-text {
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* Checked Out Card - Muted Styling */
+.genetic-inventory__card--checked-out {
+  opacity: 0.75;
+  background: var(--color-background-secondary);
+  border-color: var(--color-border);
+}
+
+.genetic-inventory__card--checked-out:hover {
+  opacity: 0.85;
+}
+
+/* Checked Out Status Badge */
+.genetic-inventory__status-badge--checked-out {
+  display: inline-flex;
+  align-self: flex-start;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, #f59e0b 12%, transparent);
+  color: #b45309;
+  border: 1px solid color-mix(in srgb, #f59e0b 25%, transparent);
+}
+
+:root[data-theme="dark"] .genetic-inventory__status-badge--checked-out {
+  background: hsl(45, 50%, 15%);
+  color: hsl(45, 80%, 65%);
+  border-color: hsl(45, 50%, 25%);
+}
+
+/* Checkout Button */
+.genetic-inventory__card-action--checkout:hover {
+  background: hsl(45, 80%, 95%);
+  color: hsl(45, 70%, 35%);
+}
+
+:root[data-theme="dark"] .genetic-inventory__card-action--checkout:hover {
+  background: hsl(45, 50%, 15%);
+  color: hsl(45, 80%, 65%);
+}
+
+/* Check In Button */
+.genetic-inventory__card-action--checkin {
+  color: var(--color-primary);
+}
+
+.genetic-inventory__card-action--checkin:hover {
+  background: hsl(142, 70%, 95%);
+  color: hsl(142, 70%, 35%);
+}
+
+:root[data-theme="dark"] .genetic-inventory__card-action--checkin:hover {
+  background: hsl(142, 50%, 15%);
+  color: hsl(142, 70%, 65%);
+}
+
+/* Check In Modal */
+.checkin-modal {
+  max-inline-size: 28rem;
+}
+
+.checkin-modal .form-body {
+  padding-block-end: 1.5rem;
+}
+
+/* Expand modal when dropdown is open to make room for options */
+.checkin-modal .form-group:has(.searchable-select--open) {
+  padding-block-end: 14rem;
+}
+
+.checkin-modal .form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-block-start: 1px solid var(--color-border-light);
+}
+
+.checkin-modal__description {
+  margin-block-end: 1.25rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+}
+
+/* Form label hint (for optional fields) */
+.form-label-hint {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-inline-start: 0.25rem;
+}
+
+/* Tablet */
+@media (min-width: 48rem) {
+  .genetic-inventory__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

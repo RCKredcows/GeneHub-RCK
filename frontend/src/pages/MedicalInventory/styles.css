@@ -1,0 +1,1473 @@
+/* Medical Inventory Page Styles */
+
+/* ============================================
+   MODAL STYLES
+   ============================================ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Loading overlay needs higher z-index than modals */
+.medical-inventory .loading-overlay {
+  z-index: 10001;
+}
+
+.modal-content {
+  background: var(--color-background);
+  border-radius: 1rem;
+  inline-size: 100%;
+  max-inline-size: 32rem;
+  max-block-size: 90dvh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.2s ease;
+  /* iOS PWA safe area support */
+  margin-top: env(safe-area-inset-top, 0px);
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.modal-content--large {
+  max-inline-size: 42rem;
+}
+
+.modal-content--small {
+  max-inline-size: 24rem;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-block-end: 1px solid var(--color-border);
+  background: var(--color-background-tertiary);
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+/* ============================================
+   FORM STYLES
+   ============================================ */
+
+.form {
+  padding: 1.5rem;
+}
+
+.form-section {
+  margin-block-end: 1.5rem;
+  padding-block-end: 1.5rem;
+  border-block-end: 1px solid var(--color-border-light);
+}
+
+.form-section:last-of-type {
+  border-block-end: none;
+  margin-block-end: 0;
+  padding-block-end: 0;
+}
+
+.form-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 1rem 0;
+}
+
+.form-row {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  margin-block-end: 1rem;
+}
+
+.form-row:last-child {
+  margin-block-end: 0;
+}
+
+.form-row--three {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 480px) {
+  .form-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-row--three {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 0.875rem;
+}
+
+.form-input,
+.form-textarea {
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: 0.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  background: var(--color-background);
+  color: var(--color-text);
+  transition: all 0.2s ease;
+  inline-size: 100%;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.form-input:hover:not(:focus),
+.form-textarea:hover:not(:focus) {
+  border-color: var(--color-text-secondary);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-block-size: 5rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-block-start: 1.5rem;
+  padding-block-start: 1.5rem;
+  border-block-start: 1px solid var(--color-border-light);
+}
+
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn--primary {
+  background: var(--color-primary);
+  color: var(--color-background);
+}
+
+.btn--primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn--secondary {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn--secondary:hover {
+  background: var(--color-border-light);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.medical-inventory {
+  min-block-size: 100dvh;
+  background: var(--color-background-secondary);
+}
+
+.medical-inventory__main {
+  padding-inline-start: 0;
+  min-block-size: 100dvh;
+}
+
+.medical-inventory__content {
+  max-inline-size: 90rem;
+  margin-inline: auto;
+  padding: 1rem;
+}
+
+/* Header */
+.medical-inventory__header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-block-end: 1.5rem;
+  padding-block-start: max(4rem, calc(3rem + env(safe-area-inset-top, 0px)));
+}
+
+.medical-inventory__title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.medical-inventory__subtitle {
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.medical-inventory__header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.medical-inventory__add-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-primary);
+  color: var(--color-background);
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.medical-inventory__add-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.medical-inventory__add-btn--secondary {
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.medical-inventory__add-btn--secondary:hover {
+  background: var(--color-background-secondary);
+}
+
+
+/* Layout */
+.medical-inventory__layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Sidebar (Folder Tree) */
+.medical-inventory__sidebar {
+  inline-size: 100%;
+  background: var(--color-background);
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.medical-inventory__sidebar-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--color-background-secondary);
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.medical-inventory__sidebar-toggle:hover {
+  background: var(--color-border-light);
+}
+
+.medical-inventory__sidebar-toggle svg:last-child {
+  margin-inline-start: auto;
+  color: var(--color-text-light);
+}
+
+.medical-inventory__sidebar-content {
+  padding: 1rem;
+  max-block-size: 300px;
+  overflow-y: auto;
+}
+
+.medical-inventory__sidebar--collapsed .medical-inventory__sidebar-content {
+  display: none;
+}
+
+
+/* Items Panel */
+.medical-inventory__items {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* Breadcrumb */
+.medical-inventory__breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-block-end: 1rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--color-background-secondary);
+  border-radius: 0.5rem;
+  font-size: 1.125rem;
+}
+
+@media (min-width: 48rem) {
+  .medical-inventory__breadcrumb {
+    background: transparent;
+    padding: 0;
+    font-size: 0.9375rem;
+  }
+}
+
+.medical-inventory__breadcrumb-item {
+  background: transparent;
+  border: none;
+  color: var(--color-text-light);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.medical-inventory__breadcrumb-item:hover {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.medical-inventory__breadcrumb-item--active {
+  color: var(--color-brand);
+  font-weight: 600;
+}
+
+.medical-inventory__breadcrumb-segment {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-text-light);
+}
+
+/* Toolbar (Search + Filters + Actions) */
+.medical-inventory__toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-block-end: 1rem;
+}
+
+.medical-inventory__filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  order: 2;
+}
+
+.medical-inventory__actions {
+  order: 1;
+}
+
+.medical-inventory__search-input {
+  inline-size: 100%;
+  padding: 0.625rem 0.75rem;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  transition: border-color 0.2s ease;
+}
+
+.medical-inventory__search-input:focus {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+.medical-inventory__search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.medical-inventory__filter-select {
+  padding: 0.625rem 0.75rem;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.medical-inventory__filter-select:focus {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+/* Actions (Add Folder, Add Item) */
+.medical-inventory__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.medical-inventory__action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--color-primary);
+  color: var(--color-background);
+  font-family: inherit;
+}
+
+.medical-inventory__action-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.medical-inventory__action-btn--secondary {
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.medical-inventory__action-btn--secondary:hover {
+  background: var(--color-background-secondary);
+  border-color: var(--color-text-light);
+}
+
+.medical-inventory__action-btn--icon {
+  padding: 0.5rem;
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.medical-inventory__action-btn--icon:hover {
+  background: var(--color-background-secondary);
+  border-color: var(--color-text-light);
+}
+
+/* Items Grid */
+.medical-inventory__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.medical-inventory__empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-light);
+  background: var(--color-background);
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border-light);
+}
+
+/* Category Tree Component */
+.category-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.category-tree__all-items {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  inline-size: 100%;
+  padding: 0.625rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: start;
+}
+
+.category-tree__all-items:hover {
+  background: var(--color-background-secondary);
+}
+
+.category-tree__all-items--selected {
+  background: var(--color-brand-light);
+  color: var(--color-brand);
+}
+
+.category-tree__count {
+  margin-inline-start: auto;
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  background: var(--color-background-secondary);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.category-tree__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-tree__empty {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+
+.category-tree__node {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-tree__item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s ease;
+}
+
+.category-tree__item:hover {
+  background: var(--color-background-secondary);
+}
+
+.category-tree__item--selected {
+  background: var(--color-brand-light);
+}
+
+.category-tree__expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.25rem;
+  color: var(--color-text-light);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.category-tree__expand-btn:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+.category-tree__expand-spacer {
+  inline-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.category-tree__name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: start;
+  padding: 0.25rem 0;
+  min-inline-size: 0;
+}
+
+.category-tree__name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-tree__item--selected .category-tree__name {
+  color: var(--color-brand);
+  font-weight: 500;
+}
+
+.category-tree__item-count {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  background: var(--color-background-secondary);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+
+.category-tree__item--selected .category-tree__item-count {
+  background: var(--color-brand);
+  color: var(--color-background);
+}
+
+.category-tree__icon {
+  flex-shrink: 0;
+  color: var(--color-text-light);
+}
+
+.category-tree__item--selected .category-tree__icon {
+  color: var(--color-brand);
+}
+
+.category-tree__actions {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.category-tree__item:hover .category-tree__actions {
+  opacity: 1;
+}
+
+.category-tree__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.25rem;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-tree__action:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+.category-tree__action--delete:hover {
+  background: hsl(0, 70%, 95%);
+  color: hsl(0, 70%, 40%);
+}
+
+.category-tree__children {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-tree__alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-block-start: 1rem;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--color-border-light);
+}
+
+.category-tree__alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+}
+
+.category-tree__alert--low {
+  background: hsl(45, 100%, 90%);
+  color: hsl(35, 80%, 35%);
+}
+
+.category-tree__alert--expiring {
+  background: hsl(0, 70%, 95%);
+  color: hsl(0, 70%, 40%);
+}
+
+/* Inventory Card Component */
+/* ========================
+   Inventory Card - Compact
+   ======================== */
+.inventory-card {
+  position: relative;
+  background: var(--color-background);
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.inventory-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-border);
+}
+
+.inventory-card:hover .inventory-card__actions {
+  opacity: 1;
+}
+
+.inventory-card--alert {
+  border-inline-start: 3px solid hsl(45, 90%, 50%);
+}
+
+.inventory-card--critical {
+  border-inline-start: 3px solid hsl(0, 70%, 50%);
+  background: hsl(0, 70%, 99%);
+}
+
+/* Top row: Category + Actions */
+.inventory-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-block-size: 1.5rem;
+}
+
+.inventory-card__category-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+  background: var(--color-background-secondary);
+  border-radius: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.inventory-card__actions {
+  display: flex;
+  gap: 0.125rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.inventory-card__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.inventory-card__action:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+.inventory-card__action--delete:hover {
+  background: hsl(0, 70%, 95%);
+  color: hsl(0, 70%, 45%);
+}
+
+/* Item Name */
+.inventory-card__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Hero Quantity Section */
+.inventory-card__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.25rem 0;
+}
+
+.inventory-card__quantity {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.inventory-card__quantity-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.inventory-card__quantity-unit {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+}
+
+/* Stock Level Bar */
+.inventory-card__stock-bar {
+  block-size: 4px;
+  background: var(--color-border-light);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.inventory-card__stock-fill {
+  block-size: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.inventory-card__stock-fill--ok {
+  background: hsl(142, 60%, 50%);
+}
+
+.inventory-card__stock-fill--low {
+  background: hsl(45, 90%, 50%);
+}
+
+.inventory-card__stock-fill--out {
+  background: hsl(0, 70%, 55%);
+}
+
+/* Status Badges */
+.inventory-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.inventory-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.inventory-card__badge--warning {
+  background: hsl(45, 100%, 90%);
+  color: hsl(35, 80%, 35%);
+}
+
+.inventory-card__badge--danger {
+  background: hsl(0, 70%, 93%);
+  color: hsl(0, 70%, 40%);
+}
+
+/* Compact Details Grid */
+.inventory-card__details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 0.5rem;
+  padding-block-start: 0.375rem;
+  border-block-start: 1px solid var(--color-border-light);
+}
+
+.inventory-card__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+}
+
+.inventory-card__detail-label {
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.inventory-card__detail-value {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.inventory-card__detail-value--alert {
+  color: hsl(35, 80%, 35%);
+}
+
+/* Quick Actions */
+.inventory-card__quick-actions {
+  display: flex;
+  gap: 0.375rem;
+  margin-block-start: auto;
+  padding-block-start: 0.5rem;
+}
+
+.inventory-card__quick-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.inventory-card__quick-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.inventory-card__quick-btn--use {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+.inventory-card__quick-btn--use:hover:not(:disabled) {
+  background: var(--color-border-light);
+}
+
+.inventory-card__quick-btn--restock {
+  background: var(--color-brand);
+  color: white;
+}
+
+.inventory-card__quick-btn--restock:hover {
+  background: var(--color-brand-dark);
+}
+
+/* Mobile: Always show actions */
+@media (max-width: 48rem) {
+  .inventory-card__actions {
+    opacity: 1;
+  }
+}
+
+/* ========================
+   Quick Modal (Usage/Restock)
+   ======================== */
+.modal-content--compact {
+  max-width: 360px;
+}
+
+@media (min-width: 48rem) {
+  .modal-content--compact {
+    max-width: 420px;
+  }
+}
+
+@media (min-width: 64rem) {
+  .modal-content--compact {
+    max-width: 480px;
+  }
+}
+
+.modal-header--compact {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.modal-header__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+}
+
+.modal-header__icon--use {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+.modal-header__icon--restock {
+  background: hsl(142, 70%, 92%);
+  color: hsl(142, 60%, 35%);
+}
+
+.modal-header--compact .modal-title {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.modal-subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-text-light);
+  margin: 0.125rem 0 0;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-header--compact .modal-close {
+  margin-left: auto;
+}
+
+.quick-modal {
+  padding: 1rem;
+}
+
+/* Stock Display */
+.quick-modal__stock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--color-background-secondary);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.quick-modal__stock-item {
+  text-align: center;
+}
+
+.quick-modal__stock-label {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: var(--color-text-light);
+  margin-bottom: 0.25rem;
+}
+
+.quick-modal__stock-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.quick-modal__stock-value--warning {
+  color: hsl(35, 80%, 40%);
+}
+
+.quick-modal__stock-value--success {
+  color: hsl(142, 60%, 35%);
+}
+
+.quick-modal__stock-unit {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--color-text-light);
+  margin-top: 0.125rem;
+}
+
+.quick-modal__stock-arrow {
+  font-size: 1.25rem;
+  color: var(--color-text-light);
+}
+
+/* Form */
+.quick-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Quick Amount Buttons */
+.quick-modal__quick-btns {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.quick-modal__quick-btn {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.375rem;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-modal__quick-btn:hover {
+  border-color: var(--color-text-light);
+  background: var(--color-background);
+}
+
+.quick-modal__quick-btn--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-background);
+}
+
+/* Input Row */
+.quick-modal__input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quick-modal__input {
+  flex: 1;
+  padding: 0.625rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.quick-modal__input:focus {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+.quick-modal__input-unit {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+  min-width: 3rem;
+}
+
+/* Textarea */
+.quick-modal__textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.375rem;
+  background: var(--color-background);
+  color: var(--color-text);
+  resize: vertical;
+  font-family: inherit;
+}
+
+.quick-modal__textarea:focus {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+.quick-modal__textarea::placeholder {
+  color: var(--color-text-light);
+}
+
+/* Actions */
+.quick-modal__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.quick-modal__btn {
+  flex: 1;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-modal__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quick-modal__btn--cancel {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+.quick-modal__btn--cancel:hover {
+  background: var(--color-border-light);
+}
+
+.quick-modal__btn--primary {
+  background: var(--color-primary);
+  color: var(--color-background);
+}
+
+.quick-modal__btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.quick-modal__btn--success {
+  background: var(--color-primary);
+  color: var(--color-background);
+}
+
+.quick-modal__btn--success:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+/* History */
+.quick-modal__history {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.quick-modal__history-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  width: 100%;
+  padding: 0.5rem 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: var(--color-text-light);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s ease;
+}
+
+.quick-modal__history-toggle:hover {
+  color: var(--color-text);
+}
+
+.quick-modal__history-toggle svg:last-child {
+  margin-inline-start: auto;
+}
+
+.quick-modal__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.quick-modal__history-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.quick-modal__history-item:last-child {
+  border-bottom: none;
+}
+
+.quick-modal__history-qty {
+  font-weight: 600;
+  color: hsl(0, 70%, 45%);
+}
+
+.quick-modal__history-date {
+  color: var(--color-text-light);
+  font-size: 0.75rem;
+}
+
+.quick-modal__history-notes {
+  width: 100%;
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
+.error-message--compact {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Tablet Styles (768px - 1024px) */
+@media (min-width: 48rem) {
+  .medical-inventory__content {
+    padding: 1.5rem 2rem;
+  }
+
+  .medical-inventory__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-block-start: 0;
+  }
+
+  .medical-inventory__toolbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .medical-inventory__filters {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    order: 1;
+  }
+
+  .medical-inventory__actions {
+    order: 2;
+  }
+
+  .medical-inventory__search-input {
+    flex: 1;
+    max-inline-size: 280px;
+  }
+
+  .medical-inventory__actions {
+    flex-shrink: 0;
+  }
+
+  .medical-inventory__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop Styles (1024px+) */
+@media (min-width: 64rem) {
+  .medical-inventory__content {
+    padding: 2rem;
+    padding-inline-start: 8rem; /* Space for hamburger menu on desktop */
+  }
+
+  .medical-inventory__layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .medical-inventory__sidebar {
+    inline-size: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 1.5rem;
+  }
+
+  .medical-inventory__sidebar-toggle {
+    display: none;
+  }
+
+  .medical-inventory__sidebar-content {
+    padding: 1.25rem;
+    max-block-size: calc(100dvh - 180px);
+  }
+
+  .medical-inventory__sidebar--collapsed .medical-inventory__sidebar-content {
+    display: block;
+  }
+}
+
+/* Large Desktop (1280px+) */
+@media (min-width: 80rem) {
+  .medical-inventory__sidebar {
+    inline-size: 280px;
+  }
+
+  .medical-inventory__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Extra Large Desktop (1440px+) */
+@media (min-width: 90rem) {
+  .medical-inventory__sidebar {
+    inline-size: 300px;
+  }
+}

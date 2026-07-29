@@ -1,0 +1,84 @@
+/* Global Styles - Mobile First */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap');
+@import './styles/common.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Color system - Light Mode */
+  --color-primary: hsl(0, 0%, 13%);
+  --color-primary-hover: hsl(0, 0%, 20%);
+  --color-text: hsl(0, 0%, 13%);
+  --color-text-light: hsl(0, 0%, 38%);
+  --color-text-muted: hsl(0, 0%, 52%);
+  --color-background: hsl(0, 0%, 100%);
+  --color-background-secondary: hsl(0, 0%, 96%);
+  --color-background-tertiary: hsl(0, 0%, 98%);
+  --color-border: hsl(0, 0%, 82%);
+  --color-border-light: hsl(0, 0%, 90%);
+  
+  /* RCK Purple */
+  --color-brand: rgb(61, 78, 122);
+  --color-brand-light: rgba(61, 78, 122, 0.1);
+  
+  /* Typography */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-heading: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size-base: 1rem;
+  --line-height-base: 1.5;
+  
+  /* Spacing scale (using rem) */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark Mode */
+:root[data-theme="dark"] {
+  --color-primary: hsl(0, 0%, 95%);
+  --color-primary-hover: hsl(0, 0%, 85%);
+  --color-text: hsl(0, 0%, 95%);
+  --color-text-light: hsl(0, 0%, 70%);
+  --color-text-muted: hsl(0, 0%, 60%);
+  --color-background: hsl(220, 13%, 13%);
+  --color-background-secondary: hsl(220, 13%, 9%);
+  --color-background-tertiary: hsl(220, 13%, 18%);
+  --color-border: hsl(220, 13%, 25%);
+  --color-border-light: hsl(220, 13%, 20%);
+  
+  /* RCK Purple - slightly brighter for dark mode */
+  --color-brand: rgb(85, 105, 155);
+  --color-brand-light: rgba(85, 105, 155, 0.15);
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
+
+#root {
+  min-height: 100vh;
+}
+

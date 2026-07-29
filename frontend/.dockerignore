@@ -1,0 +1,20 @@
+node_modules
+dist
+.vite
+.cache
+coverage
+
+# Never let local secrets into the build context.
+.env
+.env.*
+!.env.example
+
+# Not needed to build the SPA.
+supabase
+scripts
+.git
+.github
+*.md
+
+.DS_Store
+*.log
