@@ -3,6 +3,7 @@ import { FiAlertCircle, FiArrowRight, FiCheck, FiChevronRight, FiMenu, FiX } fro
 import { createTenantWithOwner, isSlugAvailable } from '../../api/tenants'
 import type { CreateTenantError } from '../../api/tenants'
 import { baseDomain } from '../../config/tenant'
+import Setup from './Setup'
 import Showcase from './Showcase'
 import './styles.css'
 
@@ -82,19 +83,6 @@ function useTypewriter(phrases: string[], active: boolean): string {
 
   return text
 }
-
-const journey = [
-  {
-    stage: 'Received',
-    title: 'Entered once',
-    body: 'Owner, sire, type, quantity, and storage location go on the record the moment a unit arrives.',
-  },
-  {
-    stage: 'Stored',
-    title: 'Its address never goes missing',
-    body: 'Tank, canister, and cane stay attached to the unit, so finding it later is a lookup, not a search.',
-  },
-]
 
 export default function Landing() {
   const [name, setName] = useState('')
@@ -295,7 +283,7 @@ export default function Landing() {
       <section className="landing__section landing__product" id="product">
         <div className="landing__section-heading" data-reveal>
           <p className="landing__section-kicker">Everything has a place</p>
-          <h2>What it looks like day to day.</h2>
+          <h2>What it looks like day to day</h2>
         </div>
 
         <div data-reveal>
@@ -305,21 +293,13 @@ export default function Landing() {
 
       <section className="landing__workflow" id="workflow">
         <div className="landing__workflow-head" data-reveal>
-          <p className="landing__section-kicker">The workflow</p>
-          <h2>Entered once. Findable for as long as you keep it.</h2>
+          <p className="landing__section-kicker">Getting set up</p>
+          <h2>Four steps to a working record.</h2>
         </div>
 
-        {/* A real sequence, so it is drawn as one: three stops on a rail. */}
-        <ol className="journey" data-reveal>
-          {journey.map(({ stage, title, body }, index) => (
-            <li className="journey__stop" key={stage} style={{ '--d': index } as CSSProperties}>
-              <span className="journey__marker" aria-hidden="true" />
-              <span className="journey__stage">{stage}</span>
-              <h3>{title}</h3>
-              <p>{body}</p>
-            </li>
-          ))}
-        </ol>
+        <div data-reveal>
+          <Setup />
+        </div>
       </section>
 
       <section className="landing__signup-section" id="create-workspace">
@@ -477,7 +457,10 @@ export default function Landing() {
         </div>
 
         <div className="landing__footer-bar">
-          <p>&copy; {new Date().getFullYear()} GeneHub</p>
+          <p>
+            &copy; {new Date().getFullYear()} GeneHub
+            <a className="landing__footer-legal" href="/privacy">Privacy</a>
+          </p>
           <p>Built for the tank room and the front office.</p>
         </div>
       </footer>

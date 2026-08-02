@@ -1,0 +1,174 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap');
+
+/*
+  Legal pages.
+
+  Same type and palette as the landing page, but the tokens are declared here
+  as well: these pages can be opened directly, without the landing stylesheet
+  ever loading.
+*/
+
+.legal {
+  --legal-ink: #0f1512;
+  --legal-ink-soft: #5c645f;
+  --legal-teal: #076e5f;
+  --legal-line: rgba(15, 21, 18, 0.1);
+  --legal-canvas: #fbfbf8;
+
+  --font-heading: 'Circular Std', 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Apercu Pro', 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  min-height: 100dvh;
+  padding: 0 0 6rem;
+  font-family: var(--font-body);
+  color: var(--legal-ink);
+  background: var(--legal-canvas);
+}
+
+.legal a {
+  color: var(--legal-teal);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 160ms ease;
+}
+
+.legal a:hover {
+  border-bottom-color: currentColor;
+}
+
+.legal :focus-visible {
+  outline: 2px solid var(--legal-teal);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- head --- */
+
+.legal__head {
+  width: min(100% - 3rem, 44rem);
+  margin: 0 auto;
+  padding: 4rem 0 2.5rem;
+  border-bottom: 1px solid var(--legal-line);
+}
+
+.legal__back {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.legal__head h1 {
+  margin: 2.5rem 0 0;
+  font-family: var(--font-heading);
+  font-size: clamp(2.25rem, 5vw, 3.25rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.legal__updated {
+  margin: 0.9rem 0 0;
+  color: var(--legal-ink-soft);
+  font-size: 0.9rem;
+}
+
+/* ---------------------------------------------------------------- body --- */
+
+/* A legal page is read, not scanned, so the measure stays narrow. */
+.legal__body {
+  width: min(100% - 3rem, 44rem);
+  margin: 0 auto;
+}
+
+.legal__body section {
+  padding: 3rem 0;
+  border-bottom: 1px solid var(--legal-line);
+}
+
+.legal__body section:last-child {
+  border-bottom: 0;
+}
+
+.legal__body h2 {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.legal__body h3 {
+  margin: 2rem 0 0.6rem;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.legal__body h3:first-of-type {
+  margin-top: 0;
+}
+
+.legal__body p {
+  margin: 0 0 1rem;
+  color: var(--legal-ink-soft);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.legal__body p:last-child {
+  margin-bottom: 0;
+}
+
+.legal__body strong {
+  color: var(--legal-ink);
+  font-weight: 600;
+}
+
+.legal__body ul {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.legal__body li {
+  position: relative;
+  padding: 0.4rem 0 0.4rem 1.4rem;
+  color: var(--legal-ink-soft);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.legal__body li::before {
+  content: '';
+  position: absolute;
+  top: 0.95rem;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--legal-teal);
+}
+
+/* ---------------------------------------------------------------- foot --- */
+
+.legal__foot {
+  width: min(100% - 3rem, 44rem);
+  margin: 0 auto;
+  padding-top: 3rem;
+  border-top: 1px solid var(--legal-line);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 38rem) {
+  .legal__head,
+  .legal__body,
+  .legal__foot {
+    width: min(100% - 2rem, 44rem);
+  }
+
+  .legal__head {
+    padding-top: 2.5rem;
+  }
+
+  .legal__body section {
+    padding: 2.25rem 0;
+  }
+}

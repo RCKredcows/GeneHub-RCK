@@ -278,6 +278,59 @@ function SupplyArt() {
   )
 }
 
+/*
+  The log reads bottom-of-the-day upward in the product; here it runs top down,
+  newest first. Entries name the action and the units it touched -- no people,
+  since inventing staff names would be dressing up an empty account.
+*/
+const activity = [
+  { time: '09:42', text: 'Genetic inventory \'Heatwave\' created', who: 'Jane D.', tone: 'teal' },
+  { time: '10:15', text: '6 embryos moved to T2 · C1', who: 'Marco R.', tone: 'violet' },
+  { time: '11:03', text: 'Medical inventory \'vet wrap\' updated', who: 'Kate L.', tone: 'teal' },
+  { time: '13:20', text: 'Gloves fell below reorder', who: 'Automatic', tone: 'low' },
+  { time: '15:47', text: '112 straws pulled for an order', who: 'Jane D.', tone: 'teal' },
+]
+
+const RAIL_X = 62
+
+function ActivityArt() {
+  const first = 38
+  const gap = 36
+  const last = first + (activity.length - 1) * gap
+
+  return (
+    <svg viewBox="0 0 340 214" role="img" aria-label="Activity log: every action recorded with the time it happened">
+      <g className="showcase__head">
+        <text x="8" y="12">TIME</text>
+        <text x={RAIL_X + 14} y="12">ACTION</text>
+        <text className="showcase__head-end" x="334" y="12">WHO</text>
+      </g>
+
+      {/* One thread through the day. */}
+      <line className="showcase__log-rail" x1={RAIL_X} y1={first - 14} x2={RAIL_X} y2={last + 14} />
+
+      {activity.map(({ time, text, who, tone }, index) => {
+        const y = first + index * gap
+
+        return (
+          <g key={time} className="showcase__row" style={{ '--d': index } as CSSProperties}>
+            <text className="showcase__log-time" x="46" y={y + 4}>{time}</text>
+            <circle className={`showcase__log-dot is-${tone}`} cx={RAIL_X} cy={y} r="4.5" />
+            <text className="showcase__log-text" x={RAIL_X + 14} y={y + 4}>{text}</text>
+            <text
+              className={who === 'Automatic' ? 'showcase__log-who is-auto' : 'showcase__log-who'}
+              x="334"
+              y={y + 4}
+            >
+              {who}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 const FEATURES = [
   {
     id: 'inventory',
@@ -296,6 +349,12 @@ const FEATURES = [
     title: 'Supply control',
     body: 'Medical and breeding supplies carried with their usage history, and a warning before you run out.',
     art: <SupplyArt />,
+  },
+  {
+    id: 'activity',
+    title: 'Activity log',
+    body: 'Every check-in, move, tank fill, and draw recorded as it happens, with the time it happened.',
+    art: <ActivityArt />,
   },
 ]
 

@@ -10,6 +10,7 @@ import {
   baseDomain,
 } from './config/tenant'
 import ProtectedRoute from './components/common/ProtectedRoute'
+import PrivacyPolicy from './pages/Legal/PrivacyPolicy'
 import OfflineBanner from './components/common/OfflineBanner'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
@@ -161,6 +162,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
@@ -243,6 +245,7 @@ function App() {
         <Route path="/signup" element={session ? <Navigate to="/dashboard" replace /> : <SignUp />} />
         <Route path="/forgot-password" element={session ? <Navigate to="/dashboard" replace /> : <ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
 
         {/* Protected routes */}
         <Route path="/dashboard" element={<ProtectedRoute session={session}><Dashboard user={session?.user ?? null} /></ProtectedRoute>} />

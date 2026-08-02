@@ -1,3 +1,8 @@
+  .setup__steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 1.25rem;
+  }
+
 /* Stand-ins for the licensed faces below. Remove once the real ones are in. */
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap');
 
@@ -74,6 +79,9 @@
   --landing-line: rgba(15, 21, 18, 0.1);
   --landing-line-firm: rgba(15, 21, 18, 0.28);
 
+  /* Every container uses this. Change the gutter in one place, not six. */
+  --landing-measure: min(100% - 3rem, 76rem);
+
   min-height: 100dvh;
   overflow: hidden;
   color: var(--landing-ink);
@@ -106,19 +114,6 @@
    left to right rather than landing as one slab. */
 .landing__signup-card[data-reveal] {
   transition-delay: 120ms;
-}
-
-/* Stops resolve along the rail, left to right. */
-.journey.is-in .journey__stop {
-  animation: journey-stop 600ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
-  animation-delay: calc(var(--d, 0) * 120ms);
-}
-
-@keyframes journey-stop {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
 }
 
 /* ------------------------------------------------------------- stage --- */
@@ -245,7 +240,7 @@
 .landing__nav {
   position: relative;
   z-index: 5;
-  width: min(100% - 3rem, 76rem);
+  width: var(--landing-measure);
   min-height: 5rem;
   margin: 0 auto;
   padding-top: 0.75rem;
@@ -332,7 +327,7 @@
 /* --------------------------------------------------------------- copy --- */
 
 .landing__stage-copy {
-  width: min(100% - 3rem, 76rem);
+  width: var(--landing-measure);
   margin: auto auto 0;
   padding: clamp(4rem, 10vw, 7rem) 0 clamp(2.5rem, 5vw, 4.5rem);
 }
@@ -454,7 +449,7 @@
 }
 
 .landing__section {
-  width: min(100% - 2rem, 76rem);
+  width: var(--landing-measure);
   margin: 0 auto;
   padding: 8.5rem 0;
 }
@@ -572,6 +567,12 @@
 @keyframes showcase-progress {
   from {
     transform: scaleY(0);
+  }
+}
+
+@keyframes showcase-progress-x {
+  from {
+    transform: scaleX(0);
   }
 }
 
@@ -800,6 +801,62 @@
   fill: var(--landing-ink-soft);
 }
 
+/* ---- activity log --------------------------------------------------- */
+
+.showcase__log-rail {
+  stroke: var(--landing-line);
+  stroke-width: 1;
+}
+
+.showcase__log-time {
+  fill: var(--landing-ink-soft);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-anchor: end;
+}
+
+.showcase__log-text {
+  fill: var(--landing-ink);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.showcase__log-who {
+  fill: var(--landing-ink-soft);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-anchor: end;
+}
+
+/* System-raised entries read as the system, not as a quiet person. */
+.showcase__log-who.is-auto {
+  fill: var(--landing-ink-soft);
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.showcase__head-end {
+  text-anchor: end;
+}
+
+.showcase__log-dot {
+  fill: var(--landing-paper);
+  stroke-width: 2.5;
+}
+
+.showcase__log-dot.is-teal {
+  stroke: var(--landing-teal);
+}
+
+.showcase__log-dot.is-violet {
+  stroke: var(--landing-violet);
+}
+
+.showcase__log-dot.is-low {
+  stroke: #c2612f;
+}
+
 /* ---- supplies ------------------------------------------------------ */
 
 .showcase__supply-name {
@@ -851,7 +908,7 @@
 }
 
 .landing__workflow {
-  width: min(100% - 2rem, 76rem);
+  width: var(--landing-measure);
   margin: 0 auto;
   padding: 8.5rem 0;
 }
@@ -868,93 +925,222 @@
 }
 
 /*
-  Three stops on one rail. The sequence is real -- a unit is received, then
-  stored, then drawn from -- so it is drawn as a line rather than as three
-  numbered cards sitting next to each other.
+  Setup flow, played as a slideshow.
+
+  One drawing at a time on a fixed stage, with the four steps as a row of
+  progress tracks underneath. It advances on its own until someone interacts,
+  and each drawing assembles itself piece by piece on arrival.
 */
-.journey {
-  position: relative;
-  margin: 4rem 0 0;
+.setup {
+  margin: 3.5rem 0 0;
+}
+
+.setup__stage {
+  min-height: clamp(18rem, 34vw, 24rem);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid var(--landing-line);
+  border-radius: 1.5rem;
+  display: grid;
+  place-items: center;
+  background: var(--landing-paper);
+}
+
+.setup__art {
+  width: min(100%, 17rem);
+  animation: setup-enter 620ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes setup-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+}
+
+.setup__art svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* Each shape drops in behind the one before it. */
+.setup__piece {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: setup-piece 520ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: calc(var(--d, 0) * 90ms + 60ms);
+}
+
+@keyframes setup-piece {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.94);
+  }
+}
+
+.setup__steps {
+  margin: 2rem 0 0;
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(2rem, 6vw, 5rem);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
 }
 
-/* The rail itself, running behind the markers. */
-.journey::before {
-  content: '';
-  position: absolute;
-  top: 6px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, var(--landing-teal), var(--landing-violet));
-  opacity: 0.35;
-}
-
-.journey__stop {
-  position: relative;
-  padding-top: 2.75rem;
-}
-
-.journey__marker {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 13px;
-  height: 13px;
-  border: 2px solid var(--landing-teal);
-  border-radius: 50%;
-  background: var(--landing-paper);
-  transition: background 200ms ease, border-color 200ms ease;
-}
-
-.journey__stop:last-child .journey__marker {
-  border-color: var(--landing-violet);
-}
-
-.journey__stop:hover .journey__marker {
-  background: var(--landing-teal);
-}
-
-.journey__stop:last-child:hover .journey__marker {
-  background: var(--landing-violet);
-}
-
-.journey__stage {
-  display: block;
-  margin-bottom: 0.75rem;
-  color: var(--landing-teal-dark);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.journey__stop:last-child .journey__stage {
-  color: var(--landing-violet);
-}
-
-.journey__stop h3 {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.journey__stop p {
-  margin: 0.6rem 0 0;
-  max-width: 34ch;
+.setup__step {
   color: var(--landing-ink-soft);
-  font-size: 0.95rem;
-  line-height: 1.65;
+  transition: color 320ms ease;
+}
+
+.setup__step.is-active {
+  color: var(--landing-ink);
+}
+
+/* The track doubles as the dwell indicator for the step that is showing. */
+.setup__step-track {
+  position: relative;
+  display: block;
+  height: 2px;
+  margin-bottom: 0.9rem;
+  overflow: hidden;
+  background: var(--landing-line);
+}
+
+.setup__step.is-active .setup__step-track {
+  background: rgba(13, 143, 124, 0.25);
+}
+
+.setup__step-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--landing-teal);
+  transform-origin: left;
+  animation: setup-fill 3.8s linear forwards;
+}
+
+@keyframes setup-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.setup__step-label {
+  display: block;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.setup__step-caption {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  color: var(--landing-ink-soft);
+}
+
+/* ---- the drawings -------------------------------------------------- */
+
+.setup__card {
+  fill: none;
+  stroke: var(--landing-line);
+  stroke-width: 1.5;
+}
+
+.setup__avatar.is-teal {
+  fill: var(--landing-teal);
+}
+
+.setup__avatar.is-violet {
+  fill: var(--landing-violet);
+}
+
+.setup__line {
+  fill: rgba(15, 21, 18, 0.14);
+}
+
+.setup__line.is-short {
+  fill: rgba(15, 21, 18, 0.09);
+}
+
+.setup__vessel {
+  fill: var(--landing-paper);
+  stroke: var(--landing-ink);
+  stroke-opacity: 0.5;
+  stroke-width: 1.6;
+}
+
+.setup__lid-cap {
+  fill: var(--landing-paper);
+  stroke: var(--landing-ink);
+  stroke-opacity: 0.5;
+  stroke-width: 1.6;
+}
+
+.setup__plate {
+  fill: rgba(15, 21, 18, 0.12);
+}
+
+/* One tank picked out, the way a selected tank reads in the app. */
+.setup__tank.is-active .setup__vessel {
+  fill: var(--landing-mint);
+  stroke: var(--landing-teal);
+  stroke-opacity: 1;
+}
+
+.setup__tank.is-active .setup__lid-cap {
+  fill: var(--landing-teal);
+  stroke: var(--landing-teal);
+  stroke-opacity: 1;
+}
+
+.setup__tank.is-active .setup__plate {
+  fill: var(--landing-teal);
+  opacity: 0.45;
+}
+
+.setup__rim {
+  fill: none;
+  stroke: var(--landing-line);
+  stroke-width: 1.5;
+}
+
+.setup__slot {
+  fill: var(--landing-paper);
+  stroke: var(--landing-line);
+  stroke-width: 1.5;
+}
+
+.setup__slot.is-filled {
+  fill: var(--landing-mint);
+  stroke: var(--landing-teal);
+}
+
+.setup__hub {
+  fill: var(--landing-violet);
+}
+
+.setup__cane {
+  fill: rgba(15, 21, 18, 0.12);
+}
+
+.setup__tip.is-teal {
+  fill: var(--landing-teal);
+}
+
+.setup__tip.is-violet {
+  fill: var(--landing-violet);
+}
+
+.setup__floor {
+  stroke: var(--landing-line);
+  stroke-width: 1.5;
+  stroke-linecap: round;
 }
 
 .landing__signup-section {
-  width: min(100% - 2rem, 76rem);
+  width: var(--landing-measure);
   margin: 0 auto;
   padding: 8.5rem 0;
   display: grid;
@@ -1174,11 +1360,12 @@
 }
 
 .landing__existing {
-  margin: 1.25rem 0 0;
-  color: #74817c;
-  font-size: 0.74rem;
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--landing-line);
+  color: var(--landing-ink-soft);
+  font-size: 0.82rem;
   line-height: 1.55;
-  text-align: center;
 }
 
 .landing__existing code {
@@ -1191,7 +1378,7 @@
 }
 
 .landing__footer {
-  width: min(100% - 2rem, 76rem);
+  width: var(--landing-measure);
   margin: 0 auto;
   padding: 5rem 0 2.5rem;
 }
@@ -1256,6 +1443,17 @@
   justify-content: space-between;
   gap: 1.5rem;
   flex-wrap: wrap;
+}
+
+.landing__footer-legal {
+  margin-left: 1.25rem;
+  padding-bottom: 1px;
+  border-bottom: 1px solid transparent;
+  transition: border-color 160ms ease;
+}
+
+.landing__footer-legal:hover {
+  border-bottom-color: var(--landing-ink-soft);
 }
 
 .landing__footer-bar p {
@@ -1344,29 +1542,71 @@
     gap: 0.5rem;
   }
 
-  /* The rail turns vertical: three stops stacked down one line. */
-  .journey {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2.25rem;
+  .setup__stage {
+    padding: 1.5rem;
   }
 
-  .journey::before {
-    top: 6px;
-    bottom: 6px;
-    left: 6px;
-    right: auto;
-    width: 1px;
-    height: auto;
-    background: linear-gradient(180deg, var(--landing-teal), var(--landing-violet));
+  .setup__art {
+    width: min(100%, 13rem);
+  }
+}
+
+/*
+  Narrow screens centre their copy.
+
+  Applied to headings and standalone text only. Form labels, inputs, and the
+  showcase tabs stay left-aligned -- centring a form makes it harder to scan
+  down the field labels.
+*/
+@media (max-width: 52rem) {
+  .landing__stage-copy,
+  .landing__section-heading,
+  .landing__workflow-head,
+  .landing__signup-copy,
+  .landing__footer {
+    text-align: center;
   }
 
-  .journey__stop {
-    padding-top: 0;
-    padding-left: 2.25rem;
+  .landing__eyebrow {
+    justify-content: center;
   }
 
-  .journey__marker {
-    top: 2px;
+  .landing__stage-copy h1,
+  .landing__stage-copy .landing__hero-text,
+  .landing__section-heading h2,
+  .landing__product .landing__section-heading h2,
+  .landing__workflow-head h2,
+  .landing__signup-copy h2,
+  .landing__signup-copy > p {
+    max-width: 22ch;
+    margin-inline: auto;
+  }
+
+  .landing__stage-copy .landing__hero-text,
+  .landing__signup-copy > p {
+    max-width: 44ch;
+  }
+
+  .landing__hero-actions {
+    justify-content: center;
+  }
+
+  .landing__footer-brand .landing__brand {
+    justify-content: center;
+  }
+
+  .landing__footer-brand > p,
+  .landing__footer-col p {
+    margin-inline: auto;
+  }
+
+  .landing__footer-col a {
+    margin-inline: auto;
+  }
+
+  .landing__footer-bar {
+    align-items: center;
+    justify-content: center;
   }
 }
 
@@ -1377,13 +1617,12 @@
 }
 
 @media (max-width: 38rem) {
-  .landing__stage {
-    min-height: min(38rem, 90vh);
+  .landing {
+    --landing-measure: min(100% - 2rem, 76rem);
   }
 
-  .landing__nav,
-  .landing__stage-copy {
-    width: min(100% - 1.75rem, 76rem);
+  .landing__stage {
+    min-height: min(38rem, 90vh);
   }
 
   /* Scaled back so the brand and the hamburger still share one bar. */
@@ -1407,18 +1646,22 @@
     font-size: clamp(2.5rem, 12vw, 3.6rem);
   }
 
+  .landing__footer-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
   .landing__hero-actions {
     display: grid;
   }
 
   .landing__section,
   .landing__signup-section {
-    width: min(100% - 1.25rem, 76rem);
     padding: 5.5rem 0;
   }
 
   .landing__workflow {
-    padding: 5.5rem 0.625rem;
+    padding: 5.5rem 0;
   }
 
   .showcase__tab {
@@ -1442,11 +1685,7 @@
   }
 
   .landing__footer {
-    min-height: 8rem;
-    flex-direction: column;
-    justify-content: center;
-    gap: 0.5rem;
-    text-align: center;
+    padding-top: 4rem;
   }
 }
 
