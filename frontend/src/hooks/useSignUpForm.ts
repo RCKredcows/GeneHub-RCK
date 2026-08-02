@@ -34,7 +34,7 @@ const initialFormData: SignUpFormData = {
 export function useSignUpForm() {
   // Arriving from the landing page, the address is already known and is the one
   // the invitation was written for. Prefilling avoids a mistyped second entry
-  // that would fail the allowed_emails check with no obvious explanation.
+  // that would fail the invitation check with no obvious explanation.
   const [formData, setFormData] = useState<SignUpFormData>(() => {
     const invited = new URLSearchParams(window.location.search).get('email');
     return invited ? { ...initialFormData, email: invited } : initialFormData;

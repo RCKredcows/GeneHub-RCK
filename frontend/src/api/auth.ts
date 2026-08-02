@@ -38,7 +38,7 @@ export const signUp = async ({ email, password, metadata = {} }: SignUpParams) =
       throw new Error('This email is not authorized to create an account. Please contact an administrator.');
     }
 
-    // Use the full name from allowed_emails if available
+    // Use the full name from the invitation if it carried one
     const finalMetadata = {
       ...metadata,
       full_name: fullName || metadata.full_name

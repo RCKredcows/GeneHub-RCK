@@ -2,7 +2,6 @@ import type { Tables, TablesInsert, TablesUpdate, Database } from './database.ty
 
 // ─── Table Row Types ────────────────────────────────────────
 export type ActivityLog = Tables<'activity_log'>
-export type AllowedEmail = Tables<'allowed_emails'>
 export type Canister = Tables<'canisters'>
 export type Customer = Tables<'customers'>
 export type Employee = Tables<'employees'>

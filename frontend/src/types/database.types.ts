@@ -90,47 +90,6 @@ export type Database = {
           },
         ]
       }
-      allowed_emails: {
-        Row: {
-          added_by: string | null
-          created_at: string | null
-          email: string
-          full_name: string
-          id: string
-          is_used: boolean | null
-          tenant_id: string
-          used_at: string | null
-        }
-        Insert: {
-          added_by?: string | null
-          created_at?: string | null
-          email: string
-          full_name: string
-          id?: string
-          is_used?: boolean | null
-          tenant_id?: string
-          used_at?: string | null
-        }
-        Update: {
-          added_by?: string | null
-          created_at?: string | null
-          email?: string
-          full_name?: string
-          id?: string
-          is_used?: boolean | null
-          tenant_id?: string
-          used_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "allowed_emails_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       canisters: {
         Row: {
           canister_number: string
@@ -1171,7 +1130,6 @@ export type Database = {
         Returns: undefined
       }
       is_slug_available: { Args: { p_slug: string }; Returns: boolean }
-      mark_email_used: { Args: { used_email: string }; Returns: undefined }
       normalize_canister_positions: {
         Args: { exclude_canister_id?: string; p_tank_id: string }
         Returns: undefined
@@ -1259,6 +1217,7 @@ export type Database = {
           ok: boolean
         }[]
       }
+      tenant_may_write: { Args: { p_tenant: string }; Returns: boolean }
       update_canister_position: {
         Args: {
           new_position: number
