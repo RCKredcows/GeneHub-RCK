@@ -69,14 +69,15 @@
   --landing-violet: #6e59a6;
   --landing-cream: #f6f5f1;
   --landing-paper: #ffffff;
-  --landing-bone: #f7f7f4;
+  --landing-canvas: #fbfbf8;
+  --landing-bone: #f5f5f1;
   --landing-line: rgba(15, 21, 18, 0.1);
   --landing-line-firm: rgba(15, 21, 18, 0.28);
 
   min-height: 100dvh;
   overflow: hidden;
   color: var(--landing-ink);
-  background: var(--landing-paper);
+  background: var(--landing-canvas);
 }
 
 .landing a {
@@ -130,15 +131,20 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--landing-paper);
 }
 
-/* A single cool wash behind the helix. No blobs, no rainbow. */
+/*
+  One cool wash, weighted to the corner the helix occupies, easing back to the
+  page tone before the copy starts. No blobs, no rainbow.
+*/
 .landing__stage-media {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--landing-paper);
+  background:
+    radial-gradient(42rem 32rem at 84% 14%, rgba(13, 143, 124, 0.07), transparent 68%),
+    radial-gradient(36rem 28rem at 8% 4%, rgba(110, 89, 166, 0.045), transparent 64%),
+    linear-gradient(180deg, #ffffff 0%, var(--landing-canvas) 62%);
 }
 
 .landing__stage-media video {
@@ -574,6 +580,11 @@
   border: 1px solid var(--landing-line);
   border-radius: 1.25rem;
   background: var(--landing-paper);
+}
+
+.showcase__panel,
+.landing__signup-card {
+  box-shadow: 0 1px 2px rgba(15, 21, 18, 0.03);
 }
 
 .showcase__panel[hidden] {
