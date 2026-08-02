@@ -26,7 +26,9 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
 const db = getSupabaseAdmin()
 
 const SITE_URL = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://genehub.app'
-const TRIAL_DAYS = 14
+// Configurable so trial length can change -- or be set to 0 for a live test
+// that actually charges -- without editing and redeploying this function.
+const TRIAL_DAYS = Number(Deno.env.get('STRIPE_TRIAL_DAYS') ?? '14')
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -110,12 +112,18 @@ serve(async (request) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
+      // Stated explicitly rather than left to Stripe's dynamic selection,
+      // which reads the dashboard's enabled methods and fails the session
+      // outright when none match the price's currency. A card is the only
+      // thing this product needs to accept.
+      payment_method_types: ['card'],
       line_items: [{ price: Deno.env.get('STRIPE_PRICE_ID') ?? '', quantity: 1 }],
       customer_email: email.trim().toLowerCase(),
       // Ties the webhook back to the row above.
       client_reference_id: pending.id,
       subscription_data: {
-        trial_period_days: TRIAL_DAYS,
+        // Stripe rejects a trial of zero days, so omit the field entirely.
+        ...(TRIAL_DAYS > 0 ? { trial_period_days: TRIAL_DAYS } : {}),
         metadata: { pending_signup_id: pending.id, slug },
       },
       // The card is collected now and charged when the trial ends.
@@ -133,6 +141,17 @@ serve(async (request) => {
     return json({ url: session.url })
   } catch (error) {
     console.error('checkout session failed:', error)
-    return json({ error: 'checkout_failed' }, 500)
+
+    // Stripe's own errors are almost always configuration -- a price id from
+    // the wrong mode, a product id where a price id belongs. Surfacing the
+    // code makes that diagnosable without reading function logs. It carries
+    // no customer data.
+    const stripeCode = (error as { type?: string; code?: string })?.type
+      ? `${(error as { type: string }).type}${
+          (error as { code?: string }).code ? `/${(error as { code: string }).code}` : ''
+        }`
+      : undefined
+
+    return json({ error: 'checkout_failed', reason: stripeCode ?? 'unknown' }, 500)
   }
 })

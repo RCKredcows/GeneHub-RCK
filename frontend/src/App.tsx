@@ -11,6 +11,8 @@ import {
 } from './config/tenant'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import PrivacyPolicy from './pages/Legal/PrivacyPolicy'
+import Terms from './pages/Legal/Terms'
+import Support from './pages/Legal/Support'
 import Pricing from './pages/Pricing'
 import Welcome from './pages/Pricing/Welcome'
 import OfflineBanner from './components/common/OfflineBanner'
@@ -167,6 +169,10 @@ function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/support" element={<Support />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/support" element={<Support />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

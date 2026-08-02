@@ -443,6 +443,7 @@ export default function Landing() {
               <a href="#workflow">How it works</a>
               <a href="/pricing">Pricing</a>
               <a href="#create-workspace">Open a workspace</a>
+              <a href="/support">Support</a>
             </div>
 
             <div className="landing__footer-col">
@@ -452,6 +453,9 @@ export default function Landing() {
                 from everyone else&rsquo;s.
               </p>
               <p>Already set up? Open the address your team gave you and sign in there.</p>
+              <p>
+                Questions? <a href="mailto:daltongorham@gmail.com">daltongorham@gmail.com</a>
+              </p>
             </div>
           </nav>
         </div>
@@ -460,6 +464,8 @@ export default function Landing() {
           <p>
             &copy; {new Date().getFullYear()} GeneHub
             <a className="landing__footer-legal" href="/privacy">Privacy</a>
+            <a className="landing__footer-legal" href="/terms">Terms</a>
+            <a className="landing__footer-legal" href="/support">Support</a>
           </p>
           <p>Built for the tank room and the front office.</p>
         </div>

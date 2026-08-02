@@ -147,6 +147,11 @@
   background: var(--legal-teal);
 }
 
+.legal__contact {
+  padding: 1.25rem 0 1.25rem 1.25rem;
+  border-left: 2px solid var(--legal-line);
+}
+
 /* ---------------------------------------------------------------- foot --- */
 
 .legal__foot {

@@ -14,7 +14,13 @@ import './styles.css'
 */
 
 const COMPANY = {
-  legalName: 'GeneHub',
+  // The business is RCK Genetics; the product it sells is GeneHub. Legal
+  // obligations belong to the entity, so the two are kept apart.
+  legalName: 'RCK Genetics',
+  productName: 'GeneHub',
+  contactEmail: 'daltongorham@gmail.com',
+  addressLines: ['431 Romance Rd', 'Romance, AR 72136'],
+  governingLaw: 'the State of Arkansas, United States',
   lastUpdated: 'August 2, 2026',
 }
 
@@ -33,12 +39,12 @@ export default function PrivacyPolicy() {
         <section>
           <h2>Who this covers</h2>
           <p>
-            {COMPANY.legalName} provides inventory software for livestock breeding operations.
-            This policy explains what we collect when you visit {domain} or use a workspace on a{' '}
-            {domain} subdomain, and what we do with it.
+            {COMPANY.legalName} provides {COMPANY.productName}, inventory software for
+            livestock breeding operations. This policy explains what we collect when you visit{' '}
+            {domain} or use a workspace on a {domain} subdomain, and what we do with it.
           </p>
           <p>
-            Throughout, <strong>you</strong> means the person using GeneHub, and{' '}
+            Throughout, <strong>you</strong> means the person using {COMPANY.productName}, and{' '}
             <strong>your operation</strong> means the business whose workspace you are working in.
           </p>
         </section>
@@ -88,7 +94,7 @@ export default function PrivacyPolicy() {
 
           <h3>Activity log</h3>
           <p>
-            GeneHub records actions taken in a workspace — what changed, which account made the
+            {COMPANY.productName} records actions taken in a workspace — what changed, which account made the
             change, and when. This is a core feature rather than analytics: it exists so your
             operation can audit its own records.
           </p>
@@ -118,6 +124,43 @@ export default function PrivacyPolicy() {
           </ul>
           <p>
             We do not sell personal information, and we do not share it with advertisers.
+          </p>
+        </section>
+
+        <section>
+          <h2>Who we share it with</h2>
+          <p>
+            We do not sell personal information and we do not share it with advertisers. A small
+            number of service providers process data on our behalf, under contract, and only to
+            run {COMPANY.productName}:
+          </p>
+          <ul>
+            <li>
+              <strong>Supabase</strong> — database, authentication, and file storage. Receives
+              account details and everything entered into a workspace.
+            </li>
+            <li>
+              <strong>Stripe</strong> — subscription billing. Receives your email address and
+              takes payment details directly; card numbers never reach our servers.
+            </li>
+            <li>
+              <strong>Resend</strong> — email delivery. Receives the address and contents of
+              service messages such as invitations.
+            </li>
+            <li>
+              <strong>Our hosting provider</strong> — serves the application and holds standard
+              server logs.
+            </li>
+          </ul>
+          <p>
+            Disclosure to each is by encrypted connection over the internet, limited to what that
+            provider needs to perform its function.
+          </p>
+          <p>
+            We may also disclose information where the law requires it, or to protect the rights
+            and safety of our users. If {COMPANY.productName} is ever acquired, information may
+            transfer as part of that transaction, and we would give notice before it became
+            subject to a different policy.
           </p>
         </section>
 
@@ -155,9 +198,24 @@ export default function PrivacyPolicy() {
         <section>
           <h2>Children</h2>
           <p>
-            GeneHub is a business tool and is not directed at children. We do not knowingly
+            {COMPANY.productName} is a business tool and is not directed at children. We do not knowingly
             collect personal information from anyone under 16. If you believe a child has
             provided us information, contact us and we will delete it.
+          </p>
+        </section>
+
+        <section>
+          <h2>Your rights</h2>
+          <p>
+            Depending on where you live, you may have the right to access the personal
+            information we hold about you, correct it, delete it, object to or restrict certain
+            processing, or receive a copy in a portable format. Write to{' '}
+            <a href={`mailto:${COMPANY.contactEmail}`}>{COMPANY.contactEmail}</a> and we will
+            respond. We will not treat you differently for asking.
+          </p>
+          <p>
+            If you are in the UK or EEA, you also have the right to complain to your data
+            protection authority.
           </p>
         </section>
 
@@ -168,6 +226,26 @@ export default function PrivacyPolicy() {
             that materially affect how we handle personal information, we will give notice in the
             product or by email before they take effect.
           </p>
+        </section>
+
+        <section>
+          <h2>Contact</h2>
+          <p>
+            Questions about this policy, or about the information we hold, can go to{' '}
+            <a href={`mailto:${COMPANY.contactEmail}`}>{COMPANY.contactEmail}</a>.
+          </p>
+          <p className="legal__contact">
+            {COMPANY.legalName}
+            {COMPANY.addressLines.map((line) => (
+              <span key={line}>
+                <br />
+                {line}
+              </span>
+            ))}
+            <br />
+            {COMPANY.contactEmail}
+          </p>
+          <p>This policy is governed by the laws of {COMPANY.governingLaw}.</p>
         </section>
       </div>
 
