@@ -11,6 +11,18 @@ import { supabase } from '../lib/supabase';
 
 export type Role = 'owner' | 'admin' | 'member';
 
+export const ROLE_LABELS: Record<Role, string> = {
+  owner: 'Owner',
+  admin: 'Admin',
+  member: 'Member',
+};
+
+export const ROLE_HINTS: Record<Role, string> = {
+  owner: 'Billing and workspace settings',
+  admin: 'Can invite and remove people',
+  member: 'Day-to-day work',
+};
+
 export interface Member {
   id: string;
   fullName: string;
@@ -208,4 +220,19 @@ export async function removeMember(memberId: string): Promise<MemberResult> {
 
   const row = data?.[0];
   return { ok: row?.ok ?? false, errorCode: (row?.error_code as MemberError) ?? null };
+}
+
+/** The signed-in user's own role, for screens that only need their own. */
+export async function fetchMyRole(): Promise<Role | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return null;
+
+  const { data, error } = await supabase
+    .from('employees')
+    .select('role')
+    .eq('id', auth.user.id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return (data?.role as Role) ?? null;
 }

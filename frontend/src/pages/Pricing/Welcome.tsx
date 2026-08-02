@@ -8,6 +8,9 @@ import './styles.css'
   The webhook creates it, usually within a second or two, and the owner
   finishes signing up from the email they receive. Telling them that is more
   honest than a spinner that cannot know when the webhook has landed.
+
+  The steps below say nothing about a receipt arriving now: the trial means no
+  payment is taken at checkout, so Stripe has nothing to send a receipt for.
 */
 
 export default function Welcome() {
@@ -31,22 +34,20 @@ export default function Welcome() {
         </p>
       </section>
 
-      <section className="pricing__plan">
-        <div className="pricing__plan-head">
-          <div>
-            <h2>What happens next</h2>
-            <p>Two steps, both by email.</p>
-          </div>
+      <section className="welcome__card">
+        <div className="welcome__card-head">
+          <h2>What happens next</h2>
+          <p>Two steps, both by email.</p>
         </div>
 
-        <ul className="pricing__included">
+        <ol className="welcome__steps">
           <li>Check your inbox for an invitation to your new workspace</li>
           <li>Follow it to set a password and sign in on your own address</li>
-          <li>Your receipt comes separately, from Stripe</li>
-          <li>We email you before the first charge</li>
-        </ul>
+          <li>Your card is not charged for the next 14 days</li>
+          <li>Stripe emails a receipt when the first payment goes through</li>
+        </ol>
 
-        <p className="pricing__fineprint">
+        <p className="welcome__note">
           Nothing in your inbox after a few minutes? Check spam, then write to us and we will
           sort it out — your payment is safe either way.
         </p>

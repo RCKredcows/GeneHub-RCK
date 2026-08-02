@@ -15,6 +15,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import Stripe from 'https://esm.sh/stripe@17.5.0?target=deno'
 import { getSupabaseAdmin } from '../_shared/notification-helpers.ts'
+import { sendInvitationEmail } from '../_shared/invitation-email.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   apiVersion: '2024-12-18.acacia',
@@ -76,6 +77,37 @@ serve(async (request) => {
         }
 
         console.log('workspace created:', result.slug)
+
+        // The owner invitation exists but nothing has sent it: this path has
+        // no signed-in user, so it cannot go through send-invitation.
+        const { data: invite } = await db
+          .from('invitations')
+          .select('email, role, expires_at, tenants!inner(name, slug)')
+          .eq('tenants.slug', result.slug)
+          .eq('role', 'owner')
+          .is('accepted_at', null)
+          .is('revoked_at', null)
+          .maybeSingle()
+
+        if (invite) {
+          const workspace = invite.tenants as unknown as { name: string; slug: string }
+          const sent = await sendInvitationEmail({
+            email: invite.email,
+            workspaceName: workspace.name,
+            workspaceSlug: workspace.slug,
+            role: invite.role,
+            expiresAt: invite.expires_at,
+            invitedByName: 'GeneHub',
+          })
+
+          // Logged rather than thrown: the workspace and the subscription are
+          // real, and a retry would try to create them again. The invitation
+          // can be resent by hand.
+          if (!sent.success) console.error('owner invitation not sent:', result.slug)
+        } else {
+          console.error('no owner invitation found for:', result.slug)
+        }
+
         break
       }
 

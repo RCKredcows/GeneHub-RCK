@@ -918,3 +918,43 @@
     margin-left: 0;
   }
 }
+
+/* --------------------------------------------------------------- billing --- */
+
+.billing__flag {
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.4rem;
+  background: rgba(194, 97, 47, 0.12);
+  color: #a3372a;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.billing__portal-button {
+  margin-left: auto;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.billing__portal-button:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+  background: var(--color-background-secondary);
+}
+
+.billing__portal-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

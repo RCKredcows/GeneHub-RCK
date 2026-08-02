@@ -1,7 +1,7 @@
 import { tenant } from '../../config/tenant';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiUser, FiMoon, FiSun, FiX, FiLayout, FiSettings, FiSave, FiAlertCircle, FiMessageSquare, FiUsers } from 'react-icons/fi';
+import { FiMenu, FiUser, FiMoon, FiSun, FiX, FiLayout, FiSettings, FiSave, FiAlertCircle, FiMessageSquare, FiUsers, FiCreditCard } from 'react-icons/fi';
 import Sidebar from '../../components/layout/Sidebar';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useUserSettings } from '../../hooks/useUserSettings';
@@ -14,6 +14,8 @@ import {
 import WidgetListItem from './components/WidgetListItem';
 import NotificationSettings from './components/NotificationSettings';
 import TeamSettings from './components/TeamSettings';
+import BillingSettings from './components/BillingSettings';
+import { fetchMyRole, ROLE_HINTS, ROLE_LABELS, type Role } from '../../api/members';
 import type { AuthUser } from '../../types';
 import './styles.css';
 
@@ -26,6 +28,15 @@ export default function Settings({ user }: SettingsProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [myRole, setMyRole] = useState<Role | null>(null);
+
+  // The account section reports the role this person actually has, rather
+  // than the single hardcoded value it showed when there was one workspace.
+  useEffect(() => {
+    fetchMyRole()
+      .then(setMyRole)
+      .catch((error) => console.error('Could not read your role:', error));
+  }, []);
 
   const {
     settings,
@@ -216,7 +227,9 @@ export default function Settings({ user }: SettingsProps) {
               <div className="settings__item">
                 <div className="settings__item-info">
                   <p className="settings__item-label">Account Type</p>
-                  <p className="settings__item-value">Admin</p>
+                  <p className="settings__item-value">
+                    {myRole ? `${ROLE_LABELS[myRole]} · ${ROLE_HINTS[myRole]}` : '—'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -229,6 +242,15 @@ export default function Settings({ user }: SettingsProps) {
               <h2 className="settings__section-title">Team</h2>
             </div>
             <TeamSettings currentUserId={user?.id} />
+          </section>
+
+          {/* Billing Section */}
+          <section className="settings__section">
+            <div className="settings__section-header">
+              <FiCreditCard className="settings__section-icon" />
+              <h2 className="settings__section-title">Billing</h2>
+            </div>
+            <BillingSettings role={myRole} />
           </section>
 
           {/* Appearance Section */}

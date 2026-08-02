@@ -7,6 +7,8 @@ import {
   removeMember,
   renewInvitation,
   revokeInvitation,
+  ROLE_HINTS,
+  ROLE_LABELS,
   sendInvitationEmail,
   setMemberRole,
   type Invitation,
@@ -33,18 +35,6 @@ const MESSAGES: Record<MemberError, string> = {
   invalid_email: 'That email address does not look right.',
   // The invitation exists either way; only delivery failed.
   send_failed: 'Invitation saved, but the email could not be sent. Try resending it.',
-};
-
-const ROLE_LABELS: Record<Role, string> = {
-  owner: 'Owner',
-  admin: 'Admin',
-  member: 'Member',
-};
-
-const ROLE_HINTS: Record<Role, string> = {
-  owner: 'Billing and workspace settings',
-  admin: 'Can invite and remove people',
-  member: 'Day-to-day work',
 };
 
 interface TeamSettingsProps {

@@ -13,10 +13,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { sendEmail } from '../_shared/resend.ts'
-import { invitationTemplate } from '../_shared/email-templates.ts'
-
-const SITE_URL = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://genehub.app'
+import { sendInvitationEmail } from '../_shared/invitation-email.ts'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -29,12 +26,6 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...CORS, 'Content-Type': 'application/json' },
   })
-}
-
-const ROLE_LABELS: Record<string, string> = {
-  owner: 'an owner',
-  admin: 'an admin',
-  member: 'a member',
 }
 
 serve(async (request) => {
@@ -79,24 +70,14 @@ serve(async (request) => {
       .maybeSingle()
 
     const workspace = invitation.tenants as unknown as { name: string; slug: string }
-    const host = SITE_URL.replace(/^https?:\/\//, '')
-    const signupUrl =
-      `https://${workspace.slug}.${host}/signup?email=${encodeURIComponent(invitation.email)}`
 
-    const result = await sendEmail({
-      to: invitation.email,
-      subject: `You have been invited to ${workspace.name} on GeneHub`,
-      html: invitationTemplate({
-        workspaceName: workspace.name,
-        signupUrl,
-        invitedByName: senderRow?.full_name || 'Someone',
-        roleLabel: ROLE_LABELS[invitation.role] ?? 'a member',
-        expiresOn: new Date(invitation.expires_at).toLocaleDateString('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        }),
-      }),
+    const result = await sendInvitationEmail({
+      email: invitation.email,
+      workspaceName: workspace.name,
+      workspaceSlug: workspace.slug,
+      role: invitation.role,
+      expiresAt: invitation.expires_at,
+      invitedByName: senderRow?.full_name || 'Someone',
     })
 
     if (!result.success) return json({ error: 'send_failed' }, 502)
