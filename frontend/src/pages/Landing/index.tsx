@@ -445,12 +445,43 @@ export default function Landing() {
       </section>
 
       <footer className="landing__footer" data-reveal>
-        <a className="landing__brand" href="/" aria-label="GeneHub home">
-          <img src="/logo.svg" alt="" className="landing__brand-mark" />
-          <span>GeneHub</span>
-        </a>
-        <p>Inventory clarity for modern breeding operations.</p>
+        <div className="landing__footer-top">
+          <div className="landing__footer-brand">
+            <a className="landing__brand" href="/" aria-label="GeneHub home">
+              <img src="/logo.svg" alt="" className="landing__brand-mark" />
+              <span>GeneHub</span>
+            </a>
+            <p>
+              Genetic inventory, storage locations, supplies, and customers — kept in one
+              record for livestock breeding operations.
+            </p>
+          </div>
+
+          <nav className="landing__footer-nav" aria-label="Footer">
+            <div className="landing__footer-col">
+              <h2>Product</h2>
+              <a href="#product">What it records</a>
+              <a href="#workflow">How it works</a>
+              <a href="#create-workspace">Open a workspace</a>
+            </div>
+
+            <div className="landing__footer-col">
+              <h2>Your workspace</h2>
+              <p>
+                Every operation gets its own address on {domain}, with records kept separate
+                from everyone else&rsquo;s.
+              </p>
+              <p>Already set up? Open the address your team gave you and sign in there.</p>
+            </div>
+          </nav>
+        </div>
+
+        <div className="landing__footer-bar">
+          <p>&copy; {new Date().getFullYear()} GeneHub</p>
+          <p>Built for the tank room and the front office.</p>
+        </div>
       </footer>
+
     </main>
   )
 }

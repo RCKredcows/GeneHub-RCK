@@ -122,13 +122,11 @@
 
 /* ------------------------------------------------------------- stage --- */
 
+/* Full bleed: the hero is the page, not a card sitting on it. */
 .landing__stage {
   position: relative;
   isolation: isolate;
   min-height: min(46rem, 92vh);
-  margin: 0.5rem;
-  border: 1px solid var(--landing-line);
-  border-radius: clamp(1.25rem, 2.5vw, 2rem);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -420,10 +418,39 @@
   gap: 0.85rem;
 }
 
+/*
+  Section separation.
+
+  Every section below the hero opens on the same hairline, with a short teal
+  tick at its start so the boundary reads as deliberate rather than as two
+  blocks of text that happened to land next to each other. Spacing does the
+  rest -- the page stays one colour throughout.
+*/
+.landing__section,
+.landing__workflow,
+.landing__signup-section,
+.landing__footer {
+  position: relative;
+  border-top: 1px solid var(--landing-line);
+}
+
+.landing__section::before,
+.landing__workflow::before,
+.landing__signup-section::before,
+.landing__footer::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 3.5rem;
+  height: 1px;
+  background: var(--landing-teal);
+}
+
 .landing__section {
   width: min(100% - 2rem, 76rem);
   margin: 0 auto;
-  padding: 8rem 0;
+  padding: 8.5rem 0;
 }
 
 .landing__section-heading {
@@ -815,8 +842,7 @@
 .landing__workflow {
   width: min(100% - 2rem, 76rem);
   margin: 0 auto;
-  padding: 8rem 0;
-  border-top: 1px solid var(--landing-line);
+  padding: 8.5rem 0;
 }
 
 .landing__workflow-head h2 {
@@ -919,8 +945,7 @@
 .landing__signup-section {
   width: min(100% - 2rem, 76rem);
   margin: 0 auto;
-  padding: 8rem 0;
-  border-top: 1px solid var(--landing-line);
+  padding: 8.5rem 0;
   display: grid;
   grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
   gap: clamp(3rem, 8vw, 6rem);
@@ -1156,25 +1181,76 @@
 
 .landing__footer {
   width: min(100% - 2rem, 76rem);
-  min-height: 7rem;
   margin: 0 auto;
+  padding: 5rem 0 2.5rem;
+}
+
+.landing__footer-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: clamp(2.5rem, 6vw, 5rem);
+}
+
+.landing__footer-brand > p {
+  max-width: 34ch;
+  margin: 1.25rem 0 0;
+  color: var(--landing-ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.landing__footer-nav {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
+}
+
+.landing__footer-col h2 {
+  margin: 0 0 1.1rem;
+  color: var(--landing-ink-soft);
+  font-family: var(--font-family-base);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.landing__footer-col a {
+  display: block;
+  margin-bottom: 0.75rem;
+  width: fit-content;
+  border-bottom: 1px solid transparent;
+  font-size: 0.95rem;
+  transition: border-color 160ms ease;
+}
+
+.landing__footer-col a:hover {
+  border-bottom-color: var(--landing-ink);
+}
+
+.landing__footer-col p {
+  max-width: 36ch;
+  margin: 0 0 0.85rem;
+  color: var(--landing-ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.landing__footer-bar {
+  margin-top: 4rem;
+  padding-top: 1.75rem;
   border-top: 1px solid var(--landing-line);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.landing__footer p {
+.landing__footer-bar p {
   margin: 0;
   color: var(--landing-ink-soft);
-  font-size: 0.78rem;
-}
-
-@keyframes landing-spin {
-  to {
-  transform: rotate(360deg);
-  }
+  font-size: 0.82rem;
 }
 
 @media (max-width: 70rem) {
@@ -1246,6 +1322,17 @@
     gap: 3.5rem;
   }
 
+  .landing__footer-top,
+  .landing__footer-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing__footer-bar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
   /* The rail turns vertical: three stops stacked down one line. */
   .journey {
     grid-template-columns: minmax(0, 1fr);
@@ -1281,7 +1368,6 @@
 @media (max-width: 38rem) {
   .landing__stage {
     min-height: min(38rem, 90vh);
-    margin: 0.375rem;
   }
 
   .landing__nav,
