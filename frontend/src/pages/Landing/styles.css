@@ -1,447 +1,1378 @@
-/* Landing page — the product's own front door.
- *
- * Scoped --lp-* tokens rather than the app's --color-* set: this page belongs
- * to no tenant, and --color-brand is RCK's purple.
- *
- * The palette is cold on purpose. The subject is storage at -196C, and cold
- * light reads truer here than the dark-with-one-accent that this kind of page
- * usually reaches for. Saturated colour appears only as straw tints, which is
- * where colour actually lives in this domain: straws are dye-tinted to identify
- * sires. The tank legend reuses those two tints to separate owned stock from
- * customer-held stock, so the diagram teaches owner_type on the way past.
- */
+/* Stand-ins for the licensed faces below. Remove once the real ones are in. */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap');
+
+/*
+  GeneHub landing.
+
+  Type: Circular Std for headlines, Apercu Pro for everything you read.
+
+  Both are commercial and cannot be redistributed here, so they lead the stack
+  but are not loaded. Drop the licensed .woff2 files into
+  `frontend/public/fonts/`, uncomment the @font-face block, and they take over
+  with no other change. Until then the stack falls through to Figtree (geometric,
+  stands in for Circular) and Instrument Sans (neo-grotesque, stands in for
+  Apercu).
+
+@font-face {
+  font-family: 'Circular Std';
+  src: url('/fonts/CircularStd-Book.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Circular Std';
+  src: url('/fonts/CircularStd-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Circular Std';
+  src: url('/fonts/CircularStd-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Apercu Pro';
+  src: url('/fonts/ApercuPro-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Apercu Pro';
+  src: url('/fonts/ApercuPro-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+*/
+
+/*
+  Light throughout. One accent (teal), one structural colour (ink), hairlines
+  instead of shadows.
+*/
 
 .landing {
-  --lp-frost: hsl(197 20% 94%);
-  --lp-surface: hsl(0 0% 100%);
-  --lp-ink: hsl(206 30% 11%);
-  --lp-muted: hsl(202 12% 42%);
-  --lp-line: hsl(203 18% 85%);
-  --lp-steel: hsl(203 14% 62%);
+  --font-family-heading: 'Circular Std', 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-base: 'Apercu Pro', 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-family-base);
 
-  --lp-owned: hsl(201 69% 34%);
-  --lp-held: hsl(31 74% 41%);
-  --lp-reject: hsl(6 56% 42%);
+  --landing-ink: #0f1512;
+  --landing-ink-soft: #5c645f;
+  --landing-teal: #0d8f7c;
+  --landing-teal-dark: #076e5f;
+  --landing-mint: #ddf3ec;
+  --landing-lime: #dff68a;
+  --landing-violet: #6e59a6;
+  --landing-cream: #f6f5f1;
+  --landing-paper: #ffffff;
+  --landing-bone: #f7f7f4;
+  --landing-line: rgba(15, 21, 18, 0.1);
+  --landing-line-firm: rgba(15, 21, 18, 0.28);
 
-  --lp-ring: hsl(201 69% 34% / 0.16);
-  --lp-shadow: 0 1px 2px hsl(206 30% 11% / 0.05), 0 14px 36px hsl(206 30% 11% / 0.07);
-  --lp-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-
-  min-block-size: 100dvh;
-  background: var(--lp-frost);
-  color: var(--lp-ink);
-  padding-inline: clamp(1.25rem, 5vw, 3rem);
-  padding-block: max(clamp(1.5rem, 4vw, 2.5rem), env(safe-area-inset-top, 0px))
-                 clamp(3rem, 8vw, 5rem);
+  min-height: 100dvh;
+  overflow: hidden;
+  color: var(--landing-ink);
+  background: var(--landing-paper);
 }
 
-:root[data-theme="dark"] .landing {
-  --lp-frost: hsl(206 26% 9%);
-  --lp-surface: hsl(206 22% 13%);
-  --lp-ink: hsl(197 22% 93%);
-  --lp-muted: hsl(202 12% 66%);
-  --lp-line: hsl(206 16% 24%);
-  --lp-steel: hsl(203 12% 50%);
-
-  --lp-owned: hsl(201 64% 60%);
-  --lp-held: hsl(31 68% 60%);
-  --lp-reject: hsl(6 64% 64%);
-
-  --lp-ring: hsl(201 64% 60% / 0.22);
-  --lp-shadow: 0 1px 2px hsl(0 0% 0% / 0.3), 0 14px 36px hsl(0 0% 0% / 0.4);
+.landing a {
+  color: inherit;
+  text-decoration: none;
 }
 
-.landing__inner {
-  max-inline-size: 70rem;
-  margin-inline: auto;
+/* ------------------------------------------------------------ reveal --- */
+
+/* Blocks come into focus as they are scrolled to. The hero is excluded --
+   it is already on screen when the page loads. */
+.landing [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 700ms cubic-bezier(0.2, 0.7, 0.3, 1),
+    transform 700ms cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
-/* ---------------------------------------------------------------- masthead */
+.landing [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
 
-.landing__mast {
+/* Second column trails the first slightly, so a two-up section resolves
+   left to right rather than landing as one slab. */
+.landing__signup-card[data-reveal] {
+  transition-delay: 120ms;
+}
+
+/* Stops resolve along the rail, left to right. */
+.journey.is-in .journey__stop {
+  animation: journey-stop 600ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: calc(var(--d, 0) * 120ms);
+}
+
+@keyframes journey-stop {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* ------------------------------------------------------------- stage --- */
+
+.landing__stage {
+  position: relative;
+  isolation: isolate;
+  min-height: min(46rem, 92vh);
+  margin: 0.5rem;
+  border: 1px solid var(--landing-line);
+  border-radius: clamp(1.25rem, 2.5vw, 2rem);
   display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  margin-block-end: clamp(2.5rem, 7vw, 4.5rem);
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--landing-paper);
 }
 
-.landing__wordmark {
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  margin: 0;
+/* A single cool wash behind the helix. No blobs, no rainbow. */
+.landing__stage-media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--landing-paper);
 }
 
-.landing__mast-note {
-  font-family: var(--lp-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
-  color: var(--lp-steel);
+.landing__stage-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.16;
 }
 
-/* ------------------------------------------------------------------- hero */
+/* -------------------------------------------------------------- helix --- */
 
-/* The form sits in the left column beneath the copy, and the dewar holds the
- * right. Keeping the card inside the hero grid rather than below it is what
- * stops the page reading as two unrelated stacked screens. */
-.landing__hero {
+/*
+  There is no curve anywhere in here. Every rung is a flat bar that rotates
+  around its own vertical axis, each one a fixed fraction of a turn behind the
+  rung above it. That staggered phase is what the eye reads as a twist, and
+  perspective does the foreshortening for free.
+*/
+.landing__helix {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: clamp(1.5rem, 7vw, 7rem);
+  z-index: -1;
+  width: min(20rem, 34vw);
   display: grid;
-  gap: clamp(2.5rem, 6vw, 4rem);
-  align-items: start;
+  place-items: center;
+  perspective: 900px;
+  pointer-events: none;
 }
 
-@media (min-width: 62rem) {
-  .landing__hero { grid-template-columns: minmax(0, 1fr) 22rem; }
+.landing__helix-strand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  transform-style: preserve-3d;
 }
 
-.landing__eyebrow {
-  font-family: var(--lp-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--lp-owned);
-  margin: 0 0 1.25rem;
+.landing__helix span {
+  position: relative;
+  width: clamp(7rem, 13vw, 11rem);
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(13, 143, 124, 0.3), rgba(110, 89, 166, 0.3));
+  animation: landing-twist 7s linear infinite;
+  animation-delay: calc(var(--i) * -0.42s);
 }
 
-.landing__headline {
-  font-size: clamp(2.5rem, 7vw, 4.25rem);
-  line-height: 1.01;
-  letter-spacing: -0.04em;
-  font-weight: 700;
-  margin: 0 0 1.35rem;
+/* The two backbones: one dot at each end of every rung. */
+.landing__helix span::before,
+.landing__helix span::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: -0.275rem;
+  border-radius: 50%;
+}
+
+.landing__helix span::before {
+  left: -0.275rem;
+  background: var(--landing-teal);
+}
+
+.landing__helix span::after {
+  right: -0.275rem;
+  background: var(--landing-violet);
+}
+
+/* Edge-on is where a flat bar should nearly vanish. */
+@keyframes landing-twist {
+  0% {
+    opacity: 0.9;
+    transform: rotateY(0deg);
+  }
+
+  25% {
+    opacity: 0.25;
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: rotateY(180deg);
+  }
+
+  75% {
+    opacity: 0.25;
+  }
+
+  100% {
+    opacity: 0.9;
+    transform: rotateY(360deg);
+  }
+}
+
+/* ---------------------------------------------------------------- nav --- */
+
+.landing__nav {
+  position: relative;
+  z-index: 5;
+  width: min(100% - 3rem, 76rem);
+  min-height: 5rem;
+  margin: 0 auto;
+  padding-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.landing__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.landing__brand-mark {
+  width: 1.85rem;
+  height: 1.85rem;
+  object-fit: contain;
+}
+
+/* The masthead carries the brand; the footer repeat stays at base size. */
+.landing__nav .landing__brand {
+  gap: 0.7rem;
+  font-size: 1.55rem;
+}
+
+.landing__nav .landing__brand-mark {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.landing__nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.85rem;
+  color: var(--landing-ink-soft);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.landing__nav-links > a:not(.landing__nav-cta) {
+  transition: color 160ms ease;
+}
+
+.landing__nav-links > a:not(.landing__nav-cta):hover {
+  color: var(--landing-ink);
+}
+
+.landing__nav-cta {
+  min-height: 2.7rem;
+  padding: 0 1.15rem;
+  border: 1px solid var(--landing-line-firm);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.landing__menu-toggle {
+  display: none;
+  padding: 0.5rem;
+  margin-right: -0.5rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 1.4rem;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.landing__nav-cta:hover {
+  color: var(--landing-paper);
+  background: var(--landing-ink);
+  border-color: var(--landing-ink);
+}
+
+/* --------------------------------------------------------------- copy --- */
+
+.landing__stage-copy {
+  width: min(100% - 3rem, 76rem);
+  margin: auto auto 0;
+  padding: clamp(4rem, 10vw, 7rem) 0 clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.landing__stage-copy h1 {
+  max-width: 17ch;
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(2.9rem, 6.4vw, 5.4rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
-.landing__lede {
-  font-size: clamp(1rem, 1.5vw, 1.125rem);
-  line-height: 1.6;
-  color: var(--lp-muted);
-  max-inline-size: 33rem;
-  margin: 0;
+.landing__stage-copy .landing__hero-text {
+  max-width: 34rem;
 }
 
-/* -------------------------------------------------------------- the dewar */
+/* ------------------------------------------------------------ buttons --- */
 
-.landing__tank {
-  display: grid;
-  justify-items: center;
-  gap: 1rem;
-  margin: 0;
-  padding-block-start: 0.5rem;
-}
-
-.landing__tank-svg {
-  inline-size: min(100%, 21rem);
-  block-size: auto;
-}
-
-/* Canisters settle into the ring on load, the way a rack is loaded. */
-.landing__can {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: landing-settle 0.45s cubic-bezier(0.2, 0.9, 0.3, 1) backwards;
-}
-
-@keyframes landing-settle {
-  from { opacity: 0; transform: scale(0.5); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-.landing__can-label {
-  font-family: var(--lp-mono);
-  font-size: 7px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  fill: var(--lp-surface);
-}
-
-.landing__slot-ring {
-  transition: stroke 0.35s ease, fill 0.35s ease;
-}
-
-.landing__slot-label {
-  font-family: var(--lp-mono);
-  font-size: 7px;
-  font-weight: 600;
-  fill: var(--lp-steel);
-  transition: fill 0.35s ease;
-}
-
-.landing__slot-label--claimed { fill: var(--lp-surface); }
-
-.landing__tank-caption {
-  font-family: var(--lp-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  color: var(--lp-steel);
-  margin: 0;
-  text-align: center;
-}
-
-.landing__legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1.1rem;
-  font-family: var(--lp-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.04em;
-  color: var(--lp-muted);
-}
-
-.landing__legend-item {
+/* Hero buttons. Flat fills, hairline outlines, no glow and no lift. */
+.landing__button {
+  min-height: 3.1rem;
+  padding: 0 1.5rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.93rem;
+  font-weight: 500;
+  transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
 }
 
-.landing__swatch {
-  inline-size: 0.5rem;
-  block-size: 0.5rem;
-  border-radius: 50%;
-  flex: none;
+.landing__button--solid {
+  color: var(--landing-paper) !important;
+  background: var(--landing-ink);
 }
 
-.landing__swatch--owned { background: var(--lp-owned); }
-.landing__swatch--held  { background: var(--lp-held); }
-
-/* A single inventory record, set as a spec sheet. Mono for the field names,
- * because everything here is a code or a coordinate. */
-.landing__record {
-  inline-size: min(100%, 21rem);
-  margin: 0.5rem 0 0;
-  display: grid;
-  gap: 0.55rem;
-  padding-block-start: 1.25rem;
-  border-block-start: 1px solid var(--lp-line);
+.landing__button--solid:hover {
+  background: var(--landing-teal-dark);
 }
 
-.landing__record-row {
-  display: grid;
-  grid-template-columns: 5.5rem 1fr;
-  gap: 0.75rem;
-  align-items: baseline;
+.landing__button--outline {
+  border-color: var(--landing-line-firm);
 }
 
-.landing__record dt {
-  font-family: var(--lp-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
+.landing__button--outline:hover {
+  border-color: var(--landing-ink);
+  background: rgba(15, 21, 18, 0.04);
+}
+
+.landing__eyebrow,
+.landing__section-kicker {
+  margin: 0 0 1.25rem;
+  color: var(--landing-teal-dark);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--lp-steel);
 }
 
-.landing__record dd {
+.landing__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.landing__eyebrow span {
+  width: 1.75rem;
+  height: 2px;
+  background: var(--landing-teal);
+}
+
+.landing__hero-text {
+  max-width: 37rem;
+  margin: 1.75rem 0 0;
+  color: var(--landing-ink-soft);
+  font-size: clamp(1rem, 1.6vw, 1.18rem);
+  line-height: 1.75;
+}
+
+.landing__hero-actions {
+  margin-top: 2.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.landing__section {
+  width: min(100% - 2rem, 76rem);
+  margin: 0 auto;
+  padding: 8rem 0;
+}
+
+.landing__section-heading {
+  max-width: 46rem;
+}
+
+/* The showcase heading runs the full measure and sizes up to fill it, rather
+   than wrapping inside a 46rem column with the diagram beside it. */
+.landing__product .landing__section-heading {
+  max-width: none;
+}
+
+.landing__product .landing__section-heading h2 {
+  max-width: none;
+  font-size: clamp(2.5rem, 5.2vw, 4.75rem);
+}
+
+.landing__section-heading h2,
+.landing__signup-copy h2 {
   margin: 0;
-  font-size: 0.82rem;
-  color: var(--lp-muted);
+  font-family: var(--font-family-heading);
+  font-size: clamp(2.25rem, 4.5vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 
-/* --------------------------------------------------------------- form card */
-
-.landing__card {
-  background: var(--lp-surface);
-  border: 1px solid var(--lp-line);
-  border-radius: 0.85rem;
-  box-shadow: var(--lp-shadow);
-  padding: clamp(1.5rem, 3.5vw, 2.25rem);
-  margin-block-start: clamp(2rem, 4vw, 2.75rem);
-  max-inline-size: 34rem;
+.landing__section-heading > p:last-child,
+.landing__signup-copy > p {
+  max-width: 40rem;
+  margin: 1.25rem 0 0;
+  color: var(--landing-ink-soft);
+  font-size: 1rem;
+  line-height: 1.75;
 }
 
-.landing__card-title {
+/* ------------------------------------------------------------ showcase --- */
+
+.showcase {
+  margin-top: 3.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+
+.showcase__tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Each tab is a rule that thickens and colours when its feature is showing. */
+.showcase__tab {
+  position: relative;
+  padding: 1.5rem 0 1.5rem 1.5rem;
+  border: 0;
+  border-left: 2px solid var(--landing-line);
+  background: none;
+  font: inherit;
+  color: var(--landing-ink-soft);
+  text-align: left;
+  cursor: pointer;
+  transition: color 220ms ease, border-color 220ms ease;
+}
+
+.showcase__tab:hover {
+  color: var(--landing-ink);
+}
+
+.showcase__tab.is-active {
+  color: var(--landing-ink);
+  border-left-color: var(--landing-teal);
+}
+
+.showcase__tab-title {
+  display: block;
+  font-family: var(--font-family-heading);
   font-size: 1.2rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.02em;
-  margin: 0 0 1.5rem;
 }
 
-.landing__form { display: grid; gap: 1.15rem; }
-
-.landing__field { display: grid; gap: 0.4rem; }
-
-.landing__label {
-  font-family: var(--lp-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--lp-muted);
-}
-
-.landing__input {
-  inline-size: 100%;
-  padding: 0.72rem 0.85rem;
-  font-family: inherit;
-  font-size: 0.95rem;
-  color: var(--lp-ink);
-  background: var(--lp-surface);
-  border: 1px solid var(--lp-line);
-  border-radius: 0.45rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.landing__input::placeholder { color: var(--lp-steel); }
-
-.landing__input:focus-visible {
-  outline: none;
-  border-color: var(--lp-owned);
-  box-shadow: 0 0 0 3px var(--lp-ring);
-}
-
-/* The address input and its fixed suffix read as a single control. */
-.landing__address {
-  display: flex;
-  align-items: stretch;
-  background: var(--lp-surface);
-  border: 1px solid var(--lp-line);
-  border-radius: 0.45rem;
+/* The description only belongs to the feature currently on screen. */
+.showcase__tab-body {
+  display: block;
+  max-width: 34ch;
+  max-height: 0;
   overflow: hidden;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  opacity: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  transition: max-height 320ms ease, opacity 220ms ease, margin-top 320ms ease;
 }
 
-.landing__address:focus-within {
-  border-color: var(--lp-owned);
-  box-shadow: 0 0 0 3px var(--lp-ring);
+.showcase__tab.is-active .showcase__tab-body {
+  max-height: 8rem;
+  margin-top: 0.6rem;
+  opacity: 1;
 }
 
-.landing__address .landing__input {
-  border: none;
-  border-radius: 0;
-  min-inline-size: 0;
-  font-family: var(--lp-mono);
-  font-size: 0.9rem;
+/* Runs the length of the dwell, so the auto-advance is never a surprise. */
+.showcase__progress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -2px;
+  width: 2px;
+  background: var(--landing-teal);
+  transform-origin: top;
+  animation: showcase-progress 7s linear forwards;
 }
 
-.landing__address .landing__input:focus-visible { box-shadow: none; }
-
-.landing__suffix {
-  display: flex;
-  align-items: center;
-  padding-inline: 0.7rem;
-  font-family: var(--lp-mono);
-  font-size: 0.85rem;
-  color: var(--lp-steel);
-  background: var(--lp-frost);
-  border-inline-start: 1px solid var(--lp-line);
-  white-space: nowrap;
+@keyframes showcase-progress {
+  from {
+    transform: scaleY(0);
+  }
 }
 
-/* Fixed height: the row must not shift as the state changes under the cursor. */
-.landing__status {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-block-size: 1.2rem;
-  font-family: var(--lp-mono);
-  font-size: 0.72rem;
-  color: var(--lp-muted);
+.showcase__panel {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--landing-line);
+  border-radius: 1.25rem;
+  background: var(--landing-paper);
 }
 
-.landing__status--ok     { color: var(--lp-owned); }
-.landing__status--reject { color: var(--lp-reject); }
+.showcase__panel[hidden] {
+  display: none;
+}
 
-.landing__pulse {
-  inline-size: 0.45rem;
-  block-size: 0.45rem;
+.showcase__art svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* Every part of a diagram draws itself in, top to bottom. */
+.showcase__art .showcase__row,
+.showcase__art .showcase__canister {
+  animation: showcase-enter 520ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: calc(var(--d, 0) * 70ms + 60ms);
+}
+
+@keyframes showcase-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ---- shared -------------------------------------------------------- */
+
+.showcase__art text {
+  font-family: var(--font-family-base);
+}
+
+.showcase__head text {
+  fill: var(--landing-ink-soft);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+}
+
+.showcase__rule {
+  stroke: var(--landing-line);
+  stroke-width: 1;
+}
+
+/* ---- inventory ----------------------------------------------------- */
+
+.showcase__row-sel {
+  fill: var(--landing-mint);
+}
+
+.showcase__dot {
+  fill: var(--landing-teal);
+}
+
+.showcase__dot.is-embryo {
+  fill: var(--landing-violet);
+}
+
+.showcase__tag {
+  fill: var(--landing-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.showcase__pill {
+  fill: rgba(13, 143, 124, 0.12);
+}
+
+.showcase__pill.is-embryo {
+  fill: rgba(110, 89, 166, 0.14);
+}
+
+.showcase__pill-text {
+  fill: var(--landing-teal-dark);
+  font-size: 9.5px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.showcase__pill-text.is-embryo {
+  fill: var(--landing-violet);
+}
+
+.showcase__qty {
+  fill: var(--landing-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.showcase__qty.is-low {
+  fill: #c2612f;
+}
+
+.showcase__loc {
+  fill: var(--landing-ink-soft);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+}
+
+/* ---- tank map ------------------------------------------------------ */
+
+.showcase__rim {
+  fill: none;
+  stroke: var(--landing-line);
+  stroke-width: 1;
+}
+
+.showcase__rim.is-inner {
+  stroke-dasharray: 2 5;
+}
+
+.showcase__tick {
+  stroke: var(--landing-line);
+  stroke-width: 1.5;
+}
+
+.showcase__hub {
+  fill: var(--landing-paper);
+  stroke: var(--landing-line);
+}
+
+.showcase__hub-text {
+  fill: var(--landing-ink-soft);
+  font-size: 7.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-anchor: middle;
+}
+
+.showcase__hub-num {
+  fill: var(--landing-ink);
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.showcase__canister {
+  cursor: pointer;
+  outline: none;
+}
+
+.showcase__can-body {
+  fill: var(--landing-paper);
+  stroke: var(--landing-line);
+  stroke-width: 1;
+  transition: fill 180ms ease, stroke 180ms ease;
+}
+
+/* Keyboard focus gets the same ring the rest of the page uses. */
+.showcase__canister:focus-visible .showcase__can-body {
+  stroke: var(--landing-teal);
+  stroke-width: 2;
+}
+
+/* Fill level as an arc around the canister. */
+.showcase__can-level {
+  fill: none;
+  stroke: var(--landing-teal);
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.5;
+  transition: opacity 180ms ease, stroke-width 180ms ease;
+}
+
+.showcase__can-num {
+  fill: var(--landing-ink-soft);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-anchor: middle;
+}
+
+.showcase__canister.is-empty .showcase__can-body {
+  stroke-dasharray: 3 4;
+}
+
+.showcase__canister.is-active .showcase__can-body {
+  fill: var(--landing-mint);
+  stroke: var(--landing-teal);
+}
+
+.showcase__canister.is-active .showcase__can-level {
+  opacity: 1;
+  stroke-width: 3.5;
+}
+
+.showcase__canister.is-active .showcase__can-num {
+  fill: var(--landing-teal-dark);
+  font-weight: 600;
+}
+
+.showcase__readout {
+  fill: var(--landing-ink);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.showcase__readout-note {
+  fill: var(--landing-ink-soft);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-anchor: end;
+}
+
+/* An empty canister is a fact worth showing, not a fault. */
+.showcase__pill.is-empty {
+  fill: rgba(15, 21, 18, 0.06);
+}
+
+.showcase__pill-text.is-empty {
+  fill: var(--landing-ink-soft);
+}
+
+/* ---- supplies ------------------------------------------------------ */
+
+.showcase__supply-name {
+  fill: var(--landing-ink);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.showcase__supply-count {
+  fill: var(--landing-ink);
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: end;
+}
+
+.showcase__supply-count.is-low {
+  fill: #c2612f;
+  font-weight: 600;
+}
+
+.showcase__track {
+  fill: rgba(15, 21, 18, 0.07);
+}
+
+.showcase__fill {
+  fill: var(--landing-teal);
+}
+
+.showcase__fill.is-low {
+  fill: #c2612f;
+}
+
+.showcase__reorder {
+  stroke: rgba(15, 21, 18, 0.35);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+/* Sits centred over its own line, not offset beside it. */
+.showcase__reorder-label {
+  fill: var(--landing-ink-soft);
+  text-anchor: middle;
+}
+
+/* The one row below its reorder point gets a gutter mark, so the state is
+   readable without a floating badge in the middle of the row. */
+.showcase__low-dot {
+  fill: #c2612f;
+}
+
+.landing__workflow {
+  width: min(100% - 2rem, 76rem);
+  margin: 0 auto;
+  padding: 8rem 0;
+  border-top: 1px solid var(--landing-line);
+}
+
+.landing__workflow-head h2 {
+  max-width: 24ch;
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
+}
+
+/*
+  Three stops on one rail. The sequence is real -- a unit is received, then
+  stored, then drawn from -- so it is drawn as a line rather than as three
+  numbered cards sitting next to each other.
+*/
+.journey {
+  position: relative;
+  margin: 4rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 6vw, 5rem);
+}
+
+/* The rail itself, running behind the markers. */
+.journey::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--landing-teal), var(--landing-violet));
+  opacity: 0.35;
+}
+
+.journey__stop {
+  position: relative;
+  padding-top: 2.75rem;
+}
+
+.journey__marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--landing-teal);
   border-radius: 50%;
-  background: currentColor;
-  flex: none;
-  animation: landing-pulse 1.2s ease-in-out infinite;
+  background: var(--landing-paper);
+  transition: background 200ms ease, border-color 200ms ease;
 }
 
-@keyframes landing-pulse {
-  0%, 100% { opacity: 0.25; }
-  50%      { opacity: 1; }
+.journey__stop:last-child .journey__marker {
+  border-color: var(--landing-violet);
+}
+
+.journey__stop:hover .journey__marker {
+  background: var(--landing-teal);
+}
+
+.journey__stop:last-child:hover .journey__marker {
+  background: var(--landing-violet);
+}
+
+.journey__stage {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: var(--landing-teal-dark);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.journey__stop:last-child .journey__stage {
+  color: var(--landing-violet);
+}
+
+.journey__stop h3 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.journey__stop p {
+  margin: 0.6rem 0 0;
+  max-width: 34ch;
+  color: var(--landing-ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.landing__signup-section {
+  width: min(100% - 2rem, 76rem);
+  margin: 0 auto;
+  padding: 8rem 0;
+  border-top: 1px solid var(--landing-line);
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: clamp(3rem, 8vw, 6rem);
+  align-items: start;
+}
+
+.landing__signup-copy h2 {
+  max-width: 16ch;
+}
+
+/* Ruled list rather than icon-and-text rows: one less shape on the page. */
+.landing__signup-benefits {
+  margin: 2.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing__signup-benefits li {
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--landing-line);
+  color: var(--landing-ink-soft);
+  font-size: 0.95rem;
+}
+
+.landing__signup-benefits li:last-child {
+  border-bottom: 1px solid var(--landing-line);
+}
+
+.landing__signup-benefits li::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 0.85rem;
+  vertical-align: 0.2em;
+  border-radius: 50%;
+  background: var(--landing-teal);
+}
+
+.landing__signup-card {
+  padding: clamp(1.5rem, 3.5vw, 2.25rem);
+  border: 1px solid var(--landing-line);
+  border-radius: 1.4rem;
+  background: var(--landing-paper);
 }
 
 .landing__error {
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(180, 35, 24, 0.18);
+  border-radius: 0.7rem;
   display: flex;
   align-items: flex-start;
-  gap: 0.55rem;
-  padding: 0.72rem 0.85rem;
-  font-size: 0.875rem;
-  line-height: 1.45;
-  color: var(--lp-reject);
-  background: hsl(6 56% 42% / 0.07);
-  border: 1px solid hsl(6 56% 42% / 0.24);
-  border-radius: 0.45rem;
+  gap: 0.6rem;
+  color: #8c2018;
+  background: #fff3f1;
+  font-size: 0.84rem;
 }
 
-.landing__error svg { flex: none; margin-block-start: 0.1rem; }
+.landing__error svg {
+  margin-top: 0.12rem;
+  flex: 0 0 auto;
+}
+
+.landing__form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.landing__field {
+  min-width: 0;
+}
+
+.landing__field--full {
+  grid-column: 1 / -1;
+}
+
+.landing__field label {
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--landing-ink-soft);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.landing__field label span {
+  color: #819089;
+  font-weight: 500;
+}
+
+.landing__field input {
+  width: 100%;
+  height: 3.15rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--landing-line);
+  border-radius: 0.7rem;
+  outline: 0;
+  color: var(--landing-ink);
+  background: var(--landing-bone);
+  font: inherit;
+  font-size: 0.95rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.landing__field input::placeholder {
+  color: #9aa6a1;
+}
+
+.landing__field input:focus {
+  border-color: var(--landing-teal);
+  box-shadow: 0 0 0 0.2rem rgba(13, 143, 124, 0.13);
+}
+
+.landing__address-input {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--landing-line);
+  border-radius: 0.7rem;
+  background: var(--landing-bone);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.landing__address-input:focus-within {
+  border-color: var(--landing-teal);
+  box-shadow: 0 0 0 0.2rem rgba(13, 143, 124, 0.13);
+}
+
+.landing__address-input input {
+  border: 0;
+  border-radius: 0.7rem 0 0 0.7rem;
+  background: transparent;
+}
+
+.landing__address-input input:focus {
+  box-shadow: none;
+}
+
+.landing__address-input > span {
+  flex: none;
+  padding-right: 0.9rem;
+  display: flex;
+  align-items: center;
+  color: var(--landing-ink-soft);
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.landing__field-status {
+  min-height: 1.2rem;
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #7b8983;
+  font-size: 0.7rem;
+}
+
+.landing__field-status.is-available {
+  color: #0a755f;
+}
+
+.landing__field-status.is-unavailable {
+  color: #a32b22;
+}
+
+.landing__field-status.is-checking {
+  color: #697871;
+}
 
 .landing__submit {
-  inline-size: 100%;
-  padding: 0.82rem 1rem;
-  font-family: inherit;
+  min-height: 3.25rem;
+  grid-column: 1 / -1;
+  margin-top: 0.25rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  color: var(--landing-paper);
+  background: var(--landing-ink);
+  font: inherit;
   font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--lp-surface);
-  background: var(--lp-ink);
-  border: none;
-  border-radius: 0.45rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.15s ease, opacity 0.15s ease;
+  transition: background 160ms ease, opacity 160ms ease;
 }
 
-:root[data-theme="dark"] .landing__submit { color: hsl(206 26% 9%); }
-
-.landing__submit:hover:not(:disabled) { background: var(--lp-owned); }
-
-.landing__submit:focus-visible {
-  outline: 2px solid var(--lp-owned);
-  outline-offset: 2px;
+.landing__submit:hover:not(:disabled) {
+  background: var(--landing-teal-dark);
 }
 
-.landing__submit:disabled { opacity: 0.38; cursor: not-allowed; }
+.landing__submit {
+  border-radius: 999px;
+}
 
-.landing__signin {
-  font-size: 0.85rem;
-  line-height: 1.55;
-  color: var(--lp-muted);
+.landing__submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.landing__spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: landing-spin 700ms linear infinite;
+}
+
+.landing__existing {
   margin: 1.25rem 0 0;
+  color: #74817c;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  text-align: center;
 }
 
-.landing__signin code {
-  font-family: var(--lp-mono);
-  font-size: 0.8rem;
-  color: var(--lp-ink);
+.landing__existing code {
+  padding: 0.12rem 0.28rem;
+  border-radius: 0.25rem;
+  color: var(--landing-ink);
+  background: #eef2ef;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.68rem;
 }
 
-/* ------------------------------------------------------------ capabilities */
-
-.landing__facts {
-  display: grid;
-  gap: 1.75rem;
-  margin-block-start: clamp(3rem, 8vw, 5rem);
-  padding-block-start: clamp(2rem, 5vw, 3rem);
-  border-block-start: 1px solid var(--lp-line);
+.landing__footer {
+  width: min(100% - 2rem, 76rem);
+  min-height: 7rem;
+  margin: 0 auto;
+  border-top: 1px solid var(--landing-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
 }
 
-@media (min-width: 46rem) {
-  .landing__facts { grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
-}
-
-.landing__fact-term {
-  font-family: var(--lp-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--lp-owned);
-  margin: 0 0 0.55rem;
-}
-
-.landing__fact-body {
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--lp-muted);
+.landing__footer p {
   margin: 0;
+  color: var(--landing-ink-soft);
+  font-size: 0.78rem;
+}
+
+@keyframes landing-spin {
+  to {
+  transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 70rem) {
+  .landing__stage {
+    min-height: min(42rem, 92vh);
+  }
+
+  .landing__stage-copy h1 {
+    max-width: 14ch;
+  }
+
+  /* The copy needs the width more than the helix does. */
+  .landing__helix {
+    opacity: 0.5;
+    right: -2rem;
+  }
+}
+
+@media (max-width: 52rem) {
+  .landing__nav {
+    min-height: 4.5rem;
+  }
+
+  .landing__menu-toggle {
+    display: block;
+  }
+
+  /* Links drop into a panel under the bar rather than disappearing. */
+  .landing__nav-links {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.5rem 1.25rem 1.25rem;
+    border: 1px solid var(--landing-line);
+    border-radius: 1rem;
+    background: var(--landing-paper);
+    opacity: 0;
+    transform: translateY(-6px);
+    visibility: hidden;
+    transition: opacity 200ms ease, transform 200ms ease, visibility 200ms;
+  }
+
+  .landing__nav[data-open='true'] .landing__nav-links {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+  }
+
+  .landing__nav-links > a:not(.landing__nav-cta) {
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--landing-line);
+  }
+
+  .landing__nav-links > .landing__nav-cta {
+    margin-top: 1.1rem;
+    justify-content: center;
+  }
+
+  .showcase,
+  .landing__signup-section {
+    grid-template-columns: 1fr;
+  }
+
+  .landing__signup-section {
+    gap: 3.5rem;
+  }
+
+  /* The rail turns vertical: three stops stacked down one line. */
+  .journey {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.25rem;
+  }
+
+  .journey::before {
+    top: 6px;
+    bottom: 6px;
+    left: 6px;
+    right: auto;
+    width: 1px;
+    height: auto;
+    background: linear-gradient(180deg, var(--landing-teal), var(--landing-violet));
+  }
+
+  .journey__stop {
+    padding-top: 0;
+    padding-left: 2.25rem;
+  }
+
+  .journey__marker {
+    top: 2px;
+  }
+}
+
+@media (max-width: 48rem) {
+  .landing__helix {
+    display: none;
+  }
+}
+
+@media (max-width: 38rem) {
+  .landing__stage {
+    min-height: min(38rem, 90vh);
+    margin: 0.375rem;
+  }
+
+  .landing__nav,
+  .landing__stage-copy {
+    width: min(100% - 1.75rem, 76rem);
+  }
+
+  /* Scaled back so the brand and the hamburger still share one bar. */
+  .landing__nav .landing__brand {
+    font-size: 1.3rem;
+  }
+
+  .landing__nav .landing__brand-mark {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+
+  .landing__nav-cta {
+    min-height: 2.5rem;
+    padding: 0 0.85rem;
+    font-size: 0.74rem;
+  }
+
+  .landing__stage-copy h1 {
+    max-width: 100%;
+    font-size: clamp(2.5rem, 12vw, 3.6rem);
+  }
+
+  .landing__hero-actions {
+    display: grid;
+  }
+
+  .landing__section,
+  .landing__signup-section {
+    width: min(100% - 1.25rem, 76rem);
+    padding: 5.5rem 0;
+  }
+
+  .landing__workflow {
+    padding: 5.5rem 0.625rem;
+  }
+
+  .showcase__tab {
+    padding-left: 1.1rem;
+  }
+
+  .landing__form {
+    grid-template-columns: 1fr;
+  }
+
+  .landing__field,
+  .landing__field--full,
+  .landing__submit {
+    grid-column: 1;
+  }
+
+  .landing__address-input > span {
+    max-width: 45%;
+    padding-inline: 0.55rem;
+    font-size: 0.67rem;
+  }
+
+  .landing__footer {
+    min-height: 8rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing__can,
-  .landing__pulse { animation: none; }
+  .landing *,
+  .landing *::before,
+  .landing *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 
-  .landing__slot-ring,
-  .landing__slot-label { transition: none; }
+  /* Hold the helix in a twisted pose rather than collapsing it flat. */
+  .landing [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+
+  .landing__helix span {
+    animation: none !important;
+    opacity: 0.85;
+    transform: rotateY(calc(var(--i) * 22deg));
+  }
 }
+

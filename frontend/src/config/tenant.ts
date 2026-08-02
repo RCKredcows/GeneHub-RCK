@@ -72,11 +72,20 @@ export function tenantSlugFromHostname(hostname: string = window.location.hostna
   return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(slug) ? slug : null;
 }
 
+/** Shown when the current host cannot carry tenant subdomains. */
+export const PUBLIC_DOMAIN = 'genehub.app';
+
 /**
  * The registrable domain, with any tenant label stripped.
  * bar7.daltongorham.com -> daltongorham.com
+ *
+ * Hosts that cannot serve subdomains at all -- an IP address or localhost --
+ * fall back to the public domain. Splitting an IP on dots would otherwise turn
+ * 192.168.4.38 into 168.4.38 and show it as if it were a domain.
  */
 export function baseDomain(hostname: string = window.location.hostname): string {
+  if (/^[\d.]+$/.test(hostname) || hostname === 'localhost') return PUBLIC_DOMAIN;
+
   const labels = hostname.split('.');
   return labels.length >= 3 ? labels.slice(1).join('.') : hostname;
 }

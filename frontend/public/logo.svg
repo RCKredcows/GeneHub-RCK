@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 38" role="img" aria-label="GeneHub">
+  <title>GeneHub</title>
+
+  <!--
+    Double helix: two backbones crossing twice, with base pairs between them.
+
+    Rung endpoints are sampled off the curves rather than eyeballed, so every
+    rung actually lands on both strands instead of floating near them.
+  -->
+
+  <g fill="none" stroke-linecap="round">
+    <!-- Base pairs, behind the strands so the strands read as continuous. -->
+    <g stroke="#0f1512" stroke-opacity="0.25" stroke-width="2.2">
+      <path d="M 11.67 9 H 26.33" />
+      <path d="M 13.79 14 H 24.21" />
+      <path d="M 8 19 H 30" />
+      <path d="M 13.79 24 H 24.21" />
+      <path d="M 11.67 29 H 26.33" />
+    </g>
+
+    <g stroke-width="3.2">
+      <!-- Left at the top, right at the waist, left again at the foot. -->
+      <path d="M 8 5 C 8 11 30 13 30 19 C 30 25 8 27 8 33" stroke="#0d8f7c" />
+      <path d="M 30 5 C 30 11 8 13 8 19 C 8 25 30 27 30 33" stroke="#6e59a6" />
+    </g>
+  </g>
+</svg>
