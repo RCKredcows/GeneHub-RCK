@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       activity_log: {
@@ -213,6 +238,7 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean | null
+          role: string
           tenant_id: string
           updated_at: string | null
         }
@@ -221,6 +247,7 @@ export type Database = {
           full_name: string
           id: string
           is_active?: boolean | null
+          role?: string
           tenant_id?: string
           updated_at?: string | null
         }
@@ -229,6 +256,7 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean | null
+          role?: string
           tenant_id?: string
           updated_at?: string | null
         }
@@ -376,6 +404,56 @@ export type Database = {
           },
         ]
       }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          full_name: string
+          id: string
+          invited_by: string | null
+          revoked_at: string | null
+          role: string
+          tenant_id: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          full_name?: string
+          id?: string
+          invited_by?: string | null
+          revoked_at?: string | null
+          role?: string
+          tenant_id: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          full_name?: string
+          id?: string
+          invited_by?: string | null
+          revoked_at?: string | null
+          role?: string
+          tenant_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nitrogen_fill_history: {
         Row: {
           amount_added: number
@@ -493,6 +571,39 @@ export type Database = {
           },
         ]
       }
+      pending_signups: {
+        Row: {
+          checkout_session_id: string | null
+          consumed_at: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          checkout_session_id?: string | null
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          full_name?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          checkout_session_id?: string | null
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       reserved_slugs: {
         Row: {
           slug: string
@@ -501,6 +612,24 @@ export type Database = {
           slug: string
         }
         Update: {
+          slug?: string
+        }
+        Relationships: []
+      }
+      signup_exemptions: {
+        Row: {
+          created_at: string
+          note: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          note?: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          note?: string
           slug?: string
         }
         Relationships: []
@@ -798,7 +927,9 @@ export type Database = {
       }
       tenants: {
         Row: {
+          billing_exempt: boolean
           created_at: string
+          current_period_end: string | null
           id: string
           legal_name: string | null
           login_hint: string | null
@@ -808,10 +939,16 @@ export type Database = {
           settings: Json
           slug: string
           status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
+          trial_ends_at: string | null
           updated_at: string
         }
         Insert: {
+          billing_exempt?: boolean
           created_at?: string
+          current_period_end?: string | null
           id?: string
           legal_name?: string | null
           login_hint?: string | null
@@ -821,10 +958,16 @@ export type Database = {
           settings?: Json
           slug: string
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Update: {
+          billing_exempt?: boolean
           created_at?: string
+          current_period_end?: string | null
           id?: string
           legal_name?: string | null
           login_hint?: string | null
@@ -834,6 +977,10 @@ export type Database = {
           settings?: Json
           slug?: string
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -960,6 +1107,29 @@ export type Database = {
       }
     }
     Functions: {
+      activate_exempt_tenant: {
+        Args: { p_pending_id: string }
+        Returns: {
+          error_code: string
+          ok: boolean
+          slug: string
+        }[]
+      }
+      activate_paid_tenant: {
+        Args: {
+          p_customer_id: string
+          p_pending_id: string
+          p_period_end: string
+          p_status: string
+          p_subscription_id: string
+          p_trial_ends_at: string
+        }
+        Returns: {
+          error_code: string
+          ok: boolean
+          slug: string
+        }[]
+      }
       check_email_allowed: {
         Args: { check_email: string }
         Returns: {
@@ -1009,6 +1179,13 @@ export type Database = {
       normalize_tank_positions: {
         Args: { exclude_tank_id?: string }
         Returns: undefined
+      }
+      remove_member: {
+        Args: { p_member_id: string }
+        Returns: {
+          error_code: string
+          ok: boolean
+        }[]
       }
       search_customers: {
         Args: {
@@ -1073,6 +1250,13 @@ export type Database = {
           unit: string
           updated_at: string
           updated_by: string
+        }[]
+      }
+      set_member_role: {
+        Args: { p_member_id: string; p_role: string }
+        Returns: {
+          error_code: string
+          ok: boolean
         }[]
       }
       update_canister_position: {
@@ -1216,6 +1400,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

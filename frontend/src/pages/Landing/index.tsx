@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import { FiAlertCircle, FiArrowRight, FiCheck, FiChevronRight, FiMenu, FiX } from 'react-icons/fi'
-import { createTenantWithOwner, isSlugAvailable } from '../../api/tenants'
+import { isSlugAvailable, startCheckout } from '../../api/tenants'
 import type { CreateTenantError } from '../../api/tenants'
 import { baseDomain } from '../../config/tenant'
 import Setup from './Setup'
@@ -186,20 +186,18 @@ export default function Landing() {
     setSubmitting(true)
 
     try {
-      const result = await createTenantWithOwner({ slug, name, email, fullName })
+      const result = await startCheckout({ slug, name, email, fullName })
 
-      if (!result.ok) {
-        setError(result.errorCode ? MESSAGES[result.errorCode] : 'Could not create the workspace.')
+      if (!result.ok || !result.url) {
+        setError(result.errorCode ? MESSAGES[result.errorCode] : 'Could not start checkout.')
         return
       }
 
-      // Finish signing up on the new subdomain. Creating the account here would
-      // leave the session on the apex, where it cannot be used.
-      window.location.assign(
-        `${window.location.protocol}//${result.slug}.${domain}/signup?email=${encodeURIComponent(email)}`
-      )
+      // Stripe collects the card, then its webhook creates the workspace and
+      // sends the owner on to their own subdomain to finish signing up.
+      window.location.assign(result.url)
     } catch (err) {
-      console.error('Workspace creation failed:', err)
+      console.error('Checkout failed:', err)
       setError('Something went wrong. Please try again.')
     } finally {
       setSubmitting(false)
@@ -248,6 +246,7 @@ export default function Landing() {
           <nav id="landing-menu" className="landing__nav-links" aria-label="Main navigation">
             <a href="#product" onClick={() => setMenuOpen(false)}>Product</a>
             <a href="#workflow" onClick={() => setMenuOpen(false)}>How it works</a>
+            <a href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
             <a
               href="#create-workspace"
               className="landing__nav-cta"
@@ -307,8 +306,8 @@ export default function Landing() {
           <p className="landing__section-kicker">Open a workspace</p>
           <h2>Start your operation&rsquo;s record.</h2>
           <p>
-            Pick the address your team will use, add your details, and finish setting up the
-            owner account on your own subdomain.
+            Pick the address your team will use and start a 14-day free trial. Card required,
+            nothing charged until the trial ends.
           </p>
 
           <ul className="landing__signup-benefits">
@@ -411,9 +410,9 @@ export default function Landing() {
 
             <button type="submit" className="landing__submit" disabled={!canSubmit}>
               {submitting ? (
-                <><span className="landing__spinner" aria-hidden="true" /> Creating workspace…</>
+<><span className="landing__spinner" aria-hidden="true" /> Taking you to checkout…</>
               ) : (
-                <>Create my workspace <FiArrowRight aria-hidden="true" /></>
+<>Start 14-day free trial <FiArrowRight aria-hidden="true" /></>
               )}
             </button>
           </form>
@@ -442,6 +441,7 @@ export default function Landing() {
               <h2>Product</h2>
               <a href="#product">What it records</a>
               <a href="#workflow">How it works</a>
+              <a href="/pricing">Pricing</a>
               <a href="#create-workspace">Open a workspace</a>
             </div>
 

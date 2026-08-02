@@ -1,0 +1,327 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap');
+
+/*
+  Pricing page. Same palette and type as the landing page, declared again here
+  because this page can be opened directly without the landing stylesheet.
+*/
+
+.pricing {
+  --ink: #0f1512;
+  --ink-soft: #5c645f;
+  --teal: #0d8f7c;
+  --teal-dark: #076e5f;
+  --mint: #ddf3ec;
+  --paper: #ffffff;
+  --canvas: #fbfbf8;
+  --line: rgba(15, 21, 18, 0.1);
+  --measure: min(100% - 3rem, 60rem);
+
+  --font-heading: 'Circular Std', 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Apercu Pro', 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  min-height: 100dvh;
+  padding-bottom: 6rem;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+/*
+  Links inherit their colour by default. Anything that sets its own colour has
+  to be written as `a.thing` -- this rule is (0,1,1) and would otherwise beat a
+  bare class selector regardless of source order.
+*/
+.pricing a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pricing :focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
+}
+
+/* ----------------------------------------------------------------- nav --- */
+
+.pricing__nav {
+  width: var(--measure);
+  min-height: 5rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.pricing__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.pricing__brand img {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+a.pricing__nav-link {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 160ms ease;
+}
+
+a.pricing__nav-link:hover {
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------- head --- */
+
+.pricing__head {
+  width: var(--measure);
+  margin: 0 auto;
+  padding: 4.5rem 0 3rem;
+}
+
+.pricing__kicker {
+  margin: 0 0 1.25rem;
+  color: var(--teal-dark);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.pricing__head h1 {
+  max-width: 16ch;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.pricing__lede {
+  max-width: 46ch;
+  margin: 1.5rem 0 0;
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.pricing__notice {
+  width: var(--measure);
+  margin: 0 auto 2rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: var(--mint);
+  color: var(--teal-dark);
+  font-size: 0.92rem;
+}
+
+.pricing__notice svg {
+  flex: none;
+}
+
+/* ---------------------------------------------------------------- plan --- */
+
+/*
+  Offer on the left, contents on the right, divided by a rule. A single wide
+  card with a short header leaves a hole where the eye expects substance.
+*/
+.pricing__plan {
+  width: var(--measure);
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  background: var(--paper);
+}
+
+.pricing__offer {
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+  border-right: 1px solid var(--line);
+  background: var(--canvas);
+}
+
+.pricing__offer h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.pricing__price {
+  margin: 1.25rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.pricing__price span {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: clamp(3rem, 6vw, 4rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.pricing__trial {
+  margin: 1.25rem 0 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  display: inline-block;
+  background: var(--mint);
+  color: var(--teal-dark);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+a.pricing__cta {
+  width: 100%;
+  min-height: 3.25rem;
+  margin-top: 1.75rem;
+  padding: 0 1.5rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--paper);
+  background: var(--ink);
+  font-size: 0.98rem;
+  font-weight: 500;
+  transition: background 180ms ease;
+}
+
+a.pricing__cta:hover {
+  background: var(--teal-dark);
+}
+
+.pricing__fineprint {
+  margin: 1rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.pricing__contents {
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+}
+
+.pricing__contents h3 {
+  margin: 0 0 1.25rem;
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pricing__included {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pricing__included li {
+  padding: 0.55rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.98rem;
+}
+
+.pricing__included svg {
+  flex: none;
+  color: var(--teal);
+}
+
+/* ----------------------------------------------------------------- faq --- */
+
+.pricing__faq {
+  width: var(--measure);
+  margin: 5rem auto 0;
+}
+
+.pricing__faq > h2 {
+  margin: 0 0 2rem;
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.pricing__faq-item {
+  padding: 1.75rem 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: 2rem;
+}
+
+.pricing__faq-item:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.pricing__faq-item h3 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.pricing__faq-item p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+
+/* ---------------------------------------------------------------- foot --- */
+
+.pricing__foot {
+  width: var(--measure);
+  margin: 4rem auto 0;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 46rem) {
+  .pricing {
+    --measure: min(100% - 2rem, 60rem);
+  }
+
+  /* Offer above contents once they cannot sit side by side. */
+  .pricing__plan,
+  .pricing__faq-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pricing__offer {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .pricing__faq-item {
+    gap: 0.75rem;
+  }
+}

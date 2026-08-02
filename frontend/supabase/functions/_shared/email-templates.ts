@@ -183,3 +183,59 @@ export function periodicReminderTemplate(data: {
 </html>
   `;
 }
+
+// Invitation to join a workspace. Sent when someone is invited from Settings,
+// and again if the invitation is renewed after lapsing.
+export function invitationTemplate(data: {
+  workspaceName: string;
+  signupUrl: string;
+  invitedByName: string;
+  roleLabel: string;
+  expiresOn: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f4;">
+  <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid rgba(15,21,18,0.1); border-radius: 16px; overflow: hidden;">
+    <div style="padding: 32px 32px 8px;">
+      <p style="margin: 0 0 24px; color: #076e5f; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;">
+        GeneHub
+      </p>
+      <h1 style="margin: 0; color: #0f1512; font-size: 24px; line-height: 1.25;">
+        ${data.invitedByName} invited you to ${data.workspaceName}
+      </h1>
+      <p style="margin: 16px 0 0; color: #5c645f; font-size: 15px; line-height: 1.6;">
+        You have been added as ${data.roleLabel}. Set a password to sign in and start
+        working with the operation's inventory.
+      </p>
+    </div>
+
+    <div style="padding: 24px 32px 32px;">
+      <a href="${data.signupUrl}"
+         style="display: inline-block; padding: 14px 28px; border-radius: 999px; background: #0f1512; color: #ffffff; font-size: 15px; font-weight: 500; text-decoration: none;">
+        Accept invitation
+      </a>
+
+      <p style="margin: 20px 0 0; color: #5c645f; font-size: 13px; line-height: 1.6;">
+        This invitation expires on ${data.expiresOn}. If the button does not work, paste this
+        into your browser:<br>
+        <span style="color: #076e5f; word-break: break-all;">${data.signupUrl}</span>
+      </p>
+    </div>
+
+    <div style="padding: 20px 32px; border-top: 1px solid rgba(15,21,18,0.1); background: #fbfbf8;">
+      <p style="margin: 0; color: #5c645f; font-size: 12px; line-height: 1.5;">
+        Not expecting this? Ignore it and nothing happens — an invitation does nothing until
+        someone accepts it.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}

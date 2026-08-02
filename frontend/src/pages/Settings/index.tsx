@@ -1,7 +1,7 @@
 import { tenant } from '../../config/tenant';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiUser, FiMoon, FiSun, FiX, FiLayout, FiSettings, FiSave, FiAlertCircle, FiMessageSquare } from 'react-icons/fi';
+import { FiMenu, FiUser, FiMoon, FiSun, FiX, FiLayout, FiSettings, FiSave, FiAlertCircle, FiMessageSquare, FiUsers } from 'react-icons/fi';
 import Sidebar from '../../components/layout/Sidebar';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useUserSettings } from '../../hooks/useUserSettings';
@@ -13,6 +13,7 @@ import {
 } from '../../constants/defaultSettings';
 import WidgetListItem from './components/WidgetListItem';
 import NotificationSettings from './components/NotificationSettings';
+import TeamSettings from './components/TeamSettings';
 import type { AuthUser } from '../../types';
 import './styles.css';
 
@@ -219,6 +220,15 @@ export default function Settings({ user }: SettingsProps) {
                 </div>
               </div>
             </div>
+          </section>
+
+          {/* Team Section */}
+          <section className="settings__section">
+            <div className="settings__section-header">
+              <FiUsers className="settings__section-icon" />
+              <h2 className="settings__section-title">Team</h2>
+            </div>
+            <TeamSettings currentUserId={user?.id} />
           </section>
 
           {/* Appearance Section */}

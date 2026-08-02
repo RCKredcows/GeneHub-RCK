@@ -56,31 +56,37 @@ export interface CreateTenantResult {
 }
 
 /**
- * Creates the tenant and an invitation for its first user. Does not create the
- * account: the caller sends the person to their new subdomain to sign up, so
- * the session is established on the origin they will actually use.
+ * Sends the visitor to Stripe Checkout to start a workspace.
+ *
+ * The tenant is deliberately not created here. Creating it is the webhook's
+ * job, once a card has been accepted -- `create_tenant_with_owner` is no
+ * longer callable by anon, so the browser could not do it even if it tried.
  */
-export async function createTenantWithOwner(params: {
+export async function startCheckout(params: {
   slug: string;
   name: string;
   email: string;
   fullName: string;
-}): Promise<CreateTenantResult> {
-  const { data, error } = await supabase.rpc('create_tenant_with_owner', {
-    p_slug: params.slug,
-    p_name: params.name,
-    p_email: params.email,
-    p_full_name: params.fullName,
+}): Promise<CreateTenantResult & { url?: string }> {
+  const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+    body: params,
   });
 
-  if (error) throw error;
+  if (error) {
+    // The function answers a typed error code for anything the form can fix;
+    // everything else is ours to look into.
+    let code: CreateTenantError | null = null;
+    try {
+      const body = await (error as { context?: Response }).context?.json();
+      code = (body?.error as CreateTenantError) ?? null;
+    } catch {
+      code = null;
+    }
 
-  const row = data?.[0];
-  return {
-    ok: row?.ok ?? false,
-    errorCode: (row?.error_code as CreateTenantError | null) ?? null,
-    slug: row?.slug ?? params.slug,
-  };
+    return { ok: false, errorCode: code, slug: params.slug };
+  }
+
+  return { ok: true, errorCode: null, slug: params.slug, url: data?.url as string | undefined };
 }
 
 interface TenantRow {
@@ -92,11 +98,6 @@ interface TenantRow {
   report_footer?: string | null;
 }
 
-/**
- * Optional branding falls back to the neutral default rather than an empty
- * string. An empty src renders as a broken image showing alt text, which looks
- * like a bug to the tenant rather than like an unset field.
- */
 function toConfig(row: TenantRow): TenantConfig {
   const name = row.name || DEFAULT_TENANT.name;
   const legalName = row.legal_name || name;
