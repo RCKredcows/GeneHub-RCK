@@ -37,7 +37,12 @@ SELECT
     (SELECT e.role FROM public.employees e
       WHERE e.id = (SELECT id FROM auth.users WHERE email = 'daltongorham@gmail.com')) AS my_role,
     (SELECT id FROM public.tenants WHERE slug = 'rck') AS rck,
-    (SELECT count(*) FROM public.tenants) AS n_tenants_all;
+    (SELECT count(*) FROM public.tenants) AS n_tenants_all,
+    (SELECT count(*) FROM public.genetic_inventory
+      WHERE tenant_id = (SELECT e.tenant_id FROM public.employees e
+        WHERE e.id = (SELECT id FROM auth.users WHERE email = 'daltongorham@gmail.com'))
+        AND status = 'stored') AS n_own_stored,
+    (SELECT count(*) FROM public.genetic_inventory WHERE status = 'stored') AS n_all_stored;
 
 -- Owner count in the caller's own workspace, used by the last-owner checks.
 ALTER TABLE _ids ADD COLUMN n_owners INT;
@@ -106,6 +111,35 @@ FROM (
           'handle_new_user'
       )
 ) open_to_anon;
+
+-- A signed-in user must not be able to ask about another workspace's billing.
+INSERT INTO _results (check_name, pass, detail)
+SELECT 'authenticated cannot probe another workspace''s billing standing',
+       NOT has_function_privilege('authenticated', 'public.tenant_may_write(uuid)', 'EXECUTE'),
+       'tenant_may_write';
+
+-- Existence of an invitation has to be answerable before login. The invitee's
+-- name does not.
+INSERT INTO _results (check_name, pass, detail)
+SELECT 'invitation lookup does not disclose the invitee''s name',
+       (SELECT full_name IS NULL FROM public.check_email_allowed(
+           (SELECT email FROM public.invitations
+             WHERE accepted_at IS NULL AND revoked_at IS NULL LIMIT 1))),
+       'check_email_allowed';
+
+-- The search functions carry no tenant filter of their own -- they rely
+-- entirely on row level security, which only applies because they run as the
+-- caller. Marking one SECURITY DEFINER would silently return every
+-- workspace's records to everyone.
+INSERT INTO _results (check_name, pass, detail)
+SELECT 'search functions run as the caller, not as owner',
+       count(*) = 0,
+       coalesce(string_agg(p.proname, ', '), 'none are definer')
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND p.prosecdef
+  AND p.proname LIKE 'search\_%';
 
 -- Slug availability stays open: the signup form checks it before any account
 -- exists, and it only ever answers true or false.
@@ -202,6 +236,16 @@ SELECT 'exempt workspaces carry no Stripe customer',
        count(*) || ' exempt tenants with a customer id'
 FROM public.tenants
 WHERE billing_exempt AND stripe_customer_id IS NOT NULL;
+
+-- The caller's own workspace is in good standing (or exempt), so its writes
+-- must still go through. A regression here locks out paying customers, which
+-- is worse than the hole enforcement closes. Checked here rather than as the
+-- application user: 017 revoked tenant_may_write from authenticated, so that
+-- a signed-in user cannot probe another workspace's billing standing.
+INSERT INTO _results (check_name, pass, detail)
+SELECT 'own workspace may still be written to',
+       public.tenant_may_write((SELECT my_tenant FROM _ids)),
+       'tenant_may_write';
 
 -- A genuinely lapsed workspace is refused.
 --
@@ -301,6 +345,21 @@ SELECT 'sees only its own colleagues',
        count(*) || ' foreign employees visible'
 FROM public.employees WHERE tenant_id <> (SELECT my_tenant FROM _ids);
 
+-- Called for real, as the application user. The count must match this
+-- workspace's own stored inventory exactly -- not the whole table.
+INSERT INTO _results (check_name, pass, detail)
+SELECT 'inventory search returns only this workspace''s records',
+       count(*) = (SELECT n_own_stored FROM _ids),
+       count(*) || ' of ' || (SELECT n_all_stored FROM _ids) || ' stored rows'
+FROM public.search_genetic_inventory(page_limit => 100000);
+
+-- Same for customers, which carry names, emails, and phone numbers.
+INSERT INTO _results (check_name, pass, detail)
+SELECT 'customer search returns only this workspace''s records',
+       count(*) = (SELECT count(*) FROM public.customers),
+       count(*) || ' rows'
+FROM public.search_customers(page_limit => 100000);
+
 -- --- Writes that must be refused --------------------------------------------
 
 -- Granting yourself a free workspace by flipping the flag.
@@ -366,14 +425,6 @@ SELECT CASE WHEN (SELECT my_role FROM _ids) = 'owner' AND (SELECT n_owners FROM 
 FROM public.set_member_role((SELECT uid FROM _ids), 'member');
 
 -- --- Subscription enforcement -----------------------------------------------
-
--- The caller's own workspace is in good standing (or exempt), so its writes
--- must still go through. A regression here locks out paying customers, which
--- is worse than the hole this feature closes.
-INSERT INTO _results (check_name, pass, detail)
-SELECT 'own workspace may still be written to',
-       public.tenant_may_write((SELECT my_tenant FROM _ids)),
-       'tenant_may_write';
 
 -- A lapsed workspace is refused. Checked against a value rather than by
 -- cancelling a real subscription: the function is the thing being tested.

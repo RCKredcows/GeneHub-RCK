@@ -38,7 +38,11 @@ export const signUp = async ({ email, password, metadata = {} }: SignUpParams) =
       throw new Error('This email is not authorized to create an account. Please contact an administrator.');
     }
 
-    // Use the full name from the invitation if it carried one
+    // The invitation lookup no longer returns a name -- it is reachable
+    // before login, and disclosing the invitee's name to anyone who guesses
+    // an address is more than it needs to answer. Whatever the signup form
+    // collected is passed through; if that is empty, the signup trigger falls
+    // back to the name recorded on the invitation itself.
     const finalMetadata = {
       ...metadata,
       full_name: fullName || metadata.full_name

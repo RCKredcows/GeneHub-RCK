@@ -154,11 +154,18 @@
 
 /* ---------------------------------------------------------------- foot --- */
 
+/* Laid out for more than one link: the support page carries two, and as a
+   plain block they ran together with no space between them. */
 .legal__foot {
   width: min(100% - 3rem, 44rem);
   margin: 0 auto;
   padding-top: 3rem;
   border-top: 1px solid var(--legal-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
   font-size: 0.9rem;
 }
 

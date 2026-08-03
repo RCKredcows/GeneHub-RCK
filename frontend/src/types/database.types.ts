@@ -1231,6 +1231,19 @@ export type Database = {
         Args: { new_position: number; old_position?: number; tank_id: string }
         Returns: undefined
       }
+      update_tenant_branding: {
+        Args: {
+          p_legal_name: string
+          p_login_hint: string
+          p_logo_url: string
+          p_name: string
+          p_report_footer: string
+        }
+        Returns: {
+          error_code: string
+          ok: boolean
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
