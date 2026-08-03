@@ -1013,8 +1013,8 @@
 }
 
 .branding__logo-preview {
-  width: 4rem;
-  height: 4rem;
+  width: 5.5rem;
+  height: 5.5rem;
   object-fit: contain;
   padding: 0.5rem;
   border: 1px solid var(--color-border-light);

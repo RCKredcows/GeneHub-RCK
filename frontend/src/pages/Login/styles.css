@@ -30,8 +30,8 @@
   renders as tall as it is wide, which is enormous.
 */
 .login__logo-image {
-  max-block-size: 5rem;
-  max-inline-size: min(320px, 70vw);
+  max-block-size: 9rem;
+  max-inline-size: min(440px, 80vw);
   block-size: auto;
   inline-size: auto;
   object-fit: contain;
