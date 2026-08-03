@@ -24,9 +24,17 @@
   justify-content: center;
 }
 
+/*
+  Bounded by height, not width. Capping width alone was written for a wide
+  wordmark, where it gives a sensible height for free -- but a square mark then
+  renders as tall as it is wide, which is enormous.
+*/
 .login__logo-image {
-  max-inline-size: min(500px, 80vw);
+  max-block-size: 5rem;
+  max-inline-size: min(320px, 70vw);
   block-size: auto;
+  inline-size: auto;
+  object-fit: contain;
 }
 
 .login__card {

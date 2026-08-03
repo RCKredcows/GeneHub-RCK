@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { FiAlertCircle, FiCheck } from 'react-icons/fi';
+import { FiAlertCircle, FiCheck, FiUpload, FiX } from 'react-icons/fi';
 import {
   fetchBranding,
   updateBranding,
+  uploadLogo,
   type Branding,
   type BrandingError,
 } from '../../../api/branding';
@@ -19,7 +20,10 @@ import type { Role } from '../../../api/members';
 const MESSAGES: Record<BrandingError, string> = {
   not_permitted: 'Only owners and admins can change branding.',
   missing_name: 'The workspace needs a name.',
-  invalid_logo: 'A logo must be a path starting with / or an https address.',
+  invalid_logo: 'That logo address is not usable.',
+  upload_failed: 'The image could not be uploaded. Please try again.',
+  file_too_large: 'That image is larger than 2 MB. Try a smaller file.',
+  wrong_file_type: 'Use a PNG, JPG, SVG, or WebP image.',
 };
 
 const FIELDS: {
@@ -39,12 +43,6 @@ const FIELDS: {
     label: 'Legal name',
     hint: 'Used on reports and copyright lines. Defaults to the workspace name.',
     placeholder: 'Rocking K Cattle Co., LLC',
-  },
-  {
-    key: 'logoUrl',
-    label: 'Logo',
-    hint: 'Shown on the sign-in screen. A path like /logo.svg, or an https address.',
-    placeholder: '/logo.svg',
   },
   {
     key: 'loginHint',
@@ -70,6 +68,7 @@ export default function BrandingSettings({ role }: BrandingSettingsProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const canEdit = role === 'owner' || role === 'admin';
 
@@ -82,6 +81,59 @@ export default function BrandingSettings({ role }: BrandingSettingsProps) {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  /**
+   * Uploads immediately on choosing a file, then saves the whole form so the
+   * new logo is live rather than sitting in an unsaved field.
+   */
+  const handleLogoChange = async (file: File | undefined) => {
+    if (!file || !branding) return;
+
+    setUploading(true);
+    setError(null);
+    setSaved(false);
+
+    try {
+      const upload = await uploadLogo(file);
+
+      if (!upload.ok) {
+        setError(MESSAGES[upload.errorCode]);
+        return;
+      }
+
+      const next = { ...branding, logoUrl: upload.url };
+      setBranding(next);
+
+      const result = await updateBranding(next);
+      if (!result.ok) {
+        setError(result.errorCode ? MESSAGES[result.errorCode] : 'Could not save the logo.');
+        return;
+      }
+
+      setSaved(true);
+    } catch (err) {
+      console.error('Logo upload failed:', err);
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleLogoRemove = async () => {
+    if (!branding) return;
+
+    const next = { ...branding, logoUrl: '' };
+    setBranding(next);
+    setError(null);
+
+    const result = await updateBranding(next);
+    if (!result.ok) {
+      setError(result.errorCode ? MESSAGES[result.errorCode] : 'Could not remove the logo.');
+      return;
+    }
+
+    setSaved(true);
+  };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -151,14 +203,54 @@ export default function BrandingSettings({ role }: BrandingSettingsProps) {
           </label>
         ))}
 
-        {branding.logoUrl && (
-          <div className="branding__preview">
-            <span className="branding__label">Preview</span>
-            {/* Nothing but the image: a broken URL should look broken here
-                rather than on the sign-in screen. */}
-            <img src={branding.logoUrl} alt="" />
+        <div className="branding__field">
+          <span className="branding__label">Logo</span>
+
+          <div className="branding__logo">
+            {/* Shown exactly as the sign-in screen will show it, so a bad
+                crop or a transparent-on-white problem is obvious here. */}
+            <img
+              className="branding__logo-preview"
+              src={branding.logoUrl || '/logo.svg'}
+              alt=""
+            />
+
+            {canEdit && (
+              <div className="branding__logo-actions">
+                <label className="branding__upload">
+                  <FiUpload aria-hidden="true" />
+                  {uploading ? 'Uploading…' : branding.logoUrl ? 'Replace' : 'Upload a logo'}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                    disabled={uploading || saving}
+                    onChange={(event) => {
+                      void handleLogoChange(event.target.files?.[0]);
+                      // Cleared so choosing the same file twice still fires.
+                      event.target.value = '';
+                    }}
+                  />
+                </label>
+
+                {branding.logoUrl && (
+                  <button
+                    type="button"
+                    className="branding__logo-clear"
+                    onClick={handleLogoRemove}
+                    disabled={uploading || saving}
+                  >
+                    <FiX aria-hidden="true" /> Remove
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-        )}
+
+          <span className="branding__hint">
+            Shown on the sign-in screen. PNG, JPG, SVG, or WebP, up to 2 MB. Without one, the
+            GeneHub mark is used.
+          </span>
+        </div>
 
         {canEdit ? (
           <button type="submit" className="branding__save" disabled={saving}>
