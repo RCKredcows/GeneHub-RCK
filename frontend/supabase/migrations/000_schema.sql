@@ -149,7 +149,11 @@ CREATE TABLE IF NOT EXISTS public.supply_usage_log (
 );
 
 CREATE TABLE IF NOT EXISTS public.nitrogen_fill_history (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    -- gen_random_uuid(), like every other table here. uuid_generate_v4() comes
+    -- from uuid-ossp, which Supabase installs into the `extensions` schema --
+    -- unqualified it resolves only when that schema is on the search_path, so
+    -- a replay from empty failed here while the live database was fine.
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tank_id UUID NOT NULL REFERENCES public.tanks(id) ON DELETE CASCADE,
     fill_date TIMESTAMPTZ DEFAULT now(),
     amount_added NUMERIC(5, 2) NOT NULL,

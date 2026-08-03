@@ -171,9 +171,14 @@ BEGIN
 
     -- Invitation so a second user can actually sign in as Bar 7 and prove the
     -- isolation from the application side, not just from SQL.
-    DELETE FROM public.allowed_emails WHERE email = 'daltongorham+bar7@gmail.com';
-    INSERT INTO public.allowed_emails (tenant_id, email, full_name)
-        VALUES (bar7, 'daltongorham+bar7@gmail.com', 'Bar 7 Test User');
+    --
+    -- allowed_emails was replaced by invitations in migration 010 and dropped
+    -- in 016; this seeds the same thing in its new home, as an owner so the
+    -- workspace is not left without one.
+    DELETE FROM public.invitations WHERE lower(email) = 'daltongorham+bar7@gmail.com';
+    INSERT INTO public.invitations (tenant_id, email, full_name, role, expires_at)
+        VALUES (bar7, 'daltongorham+bar7@gmail.com', 'Bar 7 Test User', 'owner',
+                now() + INTERVAL '30 days');
 END $$;
 
 COMMIT;

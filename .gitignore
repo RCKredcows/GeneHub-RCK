@@ -90,3 +90,7 @@ temp/
 Thumbs.db
 Desktop.ini
 
+
+# Production dumps taken for migration rehearsals. Real customer data.
+.rehearsal/
+.rehearsal.env

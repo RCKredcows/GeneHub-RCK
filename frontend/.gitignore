@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 supabase/.temp/
+
+# Production backups taken during migration. Real customer data.
+.prod-backup/

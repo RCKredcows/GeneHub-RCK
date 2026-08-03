@@ -347,11 +347,30 @@ FROM public.employees WHERE tenant_id <> (SELECT my_tenant FROM _ids);
 
 -- Called for real, as the application user. The count must match this
 -- workspace's own stored inventory exactly -- not the whole table.
+--
+-- status_filter is named as well as page_limit, and not because the test needs
+-- it: production carries two overloads of this function, an older one without
+-- status_filter and the current one with it. Naming only page_limit matches
+-- both and Postgres refuses to choose.
 INSERT INTO _results (check_name, pass, detail)
 SELECT 'inventory search returns only this workspace''s records',
        count(*) = (SELECT n_own_stored FROM _ids),
        count(*) || ' of ' || (SELECT n_all_stored FROM _ids) || ' stored rows'
-FROM public.search_genetic_inventory(page_limit => 100000);
+FROM public.search_genetic_inventory(status_filter => 'stored', page_limit => 100000);
+
+-- The overloads themselves. Two versions of a search function is how a caller
+-- ends up on the wrong one, and PostgREST picks by argument names.
+INSERT INTO _results (check_name, pass, detail)
+SELECT 'no duplicate search overloads',
+       count(*) = 0,
+       coalesce(string_agg(name || ' x' || n, ', '), 'none')
+FROM (
+    SELECT p.proname AS name, count(*) AS n
+    FROM pg_proc p JOIN pg_namespace n2 ON n2.oid = p.pronamespace
+    WHERE n2.nspname = 'public' AND p.proname LIKE 'search\_%'
+    GROUP BY p.proname
+    HAVING count(*) > 1
+) dupes;
 
 -- Same for customers, which carry names, emails, and phone numbers.
 INSERT INTO _results (check_name, pass, detail)
