@@ -37,7 +37,7 @@ export const DEFAULT_TENANT: TenantConfig = {
   slug: '',
   name: 'GeneHub',
   legalName: 'GeneHub',
-  logoUrl: '/logo.svg',
+  logoUrl: '/icon-192.png',
   reportFooter: 'GeneHub',
   loginHint: '',
 };
