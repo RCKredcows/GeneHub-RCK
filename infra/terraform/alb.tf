@@ -144,6 +144,11 @@ resource "aws_s3_bucket" "alb_logs" {
 
   bucket = local.alb_log_bucket
 
+  # Access logs are disposable and the lifecycle policy expires them anyway.
+  # Without this, a teardown fails on BucketNotEmpty and has to be emptied by
+  # hand before terraform will continue.
+  force_destroy = true
+
   tags = {
     Name = local.alb_log_bucket
   }

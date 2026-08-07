@@ -1,4 +1,10 @@
 resource "aws_ecr_repository" "frontend" {
+  # Images are rebuilt by scripts/build-and-push.sh from source, so a
+  # repository full of them is not worth blocking a teardown over. Without
+  # this, `terraform destroy` fails on RepositoryNotEmptyException and has to
+  # be cleared by hand.
+  force_delete = true
+
   name = "${local.name_prefix}-frontend"
 
   # Immutable tags mean a given tag always refers to the same image, so a
