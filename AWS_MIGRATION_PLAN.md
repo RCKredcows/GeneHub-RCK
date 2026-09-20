@@ -1,7 +1,9 @@
 # GeneHub AWS Migration Plan
 
-Status: in progress — development environment live, production not yet migrated
-Last updated: 2026-07-29
+Status: in progress — development environment live, production not yet migrated.
+The production cutover itself is tracked in [CUTOVER.md](CUTOVER.md).
+Last updated: 2026-09-20 (originally 2026-07-29; §3, §4, §6 and §8 revised for
+billing, roles and migrations 008–020)
 Supersedes: the original plan of 2026-07-27, which proposed replacing Supabase
 with RDS, Cognito, and a FastAPI backend. That path was assessed and dropped.
 See §9.
@@ -87,12 +89,28 @@ Signing in at the apex was removed because it produced an incoherent page:
 generic branding wrapped around a specific tenant's data, since no tenant can be
 resolved from the hostname.
 
-Signup ordering matters and is not accidental. `create_tenant_with_owner()`
-creates the tenant and an `allowed_emails` invitation but **not** the account.
-The client then redirects to `<slug>.<domain>/signup?email=…`, where the
-existing `handle_new_user()` trigger consumes the invitation. Creating the
-account at the apex would strand the session there — Supabase stores it in
-`localStorage`, which is scoped per origin.
+Signup ordering matters and is not accidental. Workspace creation creates the
+tenant and an owner invitation but **not** the account. The owner then signs up
+at `<slug>.<domain>/signup`, where the `handle_new_user()` trigger consumes the
+invitation. Creating the account at the apex would strand the session there —
+Supabase stores it in `localStorage`, which is scoped per origin.
+
+A workspace now exists only once Stripe has accepted a card (migration `008`):
+
+1. The landing page calls the `create-checkout-session` edge function, which
+   stores what the visitor typed in `pending_signups` and starts Stripe
+   Checkout. No tenant exists yet.
+2. On `checkout.session.completed` the `stripe-webhook` function, holding the
+   service role, calls `activate_paid_tenant()`, which creates the tenant and
+   its owner invitation.
+3. `create_tenant_with_owner()` is no longer callable from the browser: `008`
+   revoked `EXECUTE` from `anon`, so a workspace cannot exist without a
+   subscription behind it.
+
+Slugs in `signup_exemptions` skip Stripe: `create-checkout-session` creates
+them directly through `activate_exempt_tenant()` (migration `009`). Separately,
+`tenants.billing_exempt` marks a workspace as never charged and never locked
+out. Setup and the reasoning are in `frontend/supabase/functions/README.md`.
 
 ### Cross-workspace access
 
@@ -105,9 +123,18 @@ their own tenant's rows regardless of hostname.
 
 ### Tenant model
 
-**One tenant per user, no roles.** `employees.tenant_id` is the single source of
-truth; membership alone grants access. A join table and a role column were
-considered and rejected as unneeded complexity.
+**One tenant per user.** `employees.tenant_id` is the single source of truth;
+membership grants access. A join table was considered and rejected as unneeded
+complexity, and one email address still belongs to exactly one workspace.
+
+**Roles were added later** (migration `010`). `employees.role` is `owner`,
+`admin` or `member`: owners manage billing and workspace settings, admins invite
+and remove people, members do day-to-day work. The signup allowlist
+(`allowed_emails`) was replaced by `invitations` — expiring, revocable,
+resendable, with an audit trail — and `allowed_emails` was dropped in `016`.
+Changing a role or removing an account, which RLS cannot express, goes through
+`SECURITY DEFINER` functions (`set_member_role`, `remove_member`) that also stop
+a workspace losing its last owner.
 
 Consequence: the tenant comes from the JWT, not the hostname. The subdomain is
 branding and routing, never an authorisation boundary.
@@ -123,7 +150,10 @@ that changes at most twice per session.
 
 ## 4. Database migrations
 
-Production is still on `000` alone. Everything below is applied to dev only.
+Production is still on `000` alone. The full `001` → `020` path has been
+applied to a restored copy of production and rehearsed; the counts and results
+are in `frontend/supabase/migrations/README.md`, which is also the plan for
+promoting production.
 
 | Migration | Purpose |
 |---|---|
@@ -135,16 +165,28 @@ Production is still on `000` alone. Everything below is applied to dev only.
 | `005_composite_fks` | 15 foreign keys rewritten to include `tenant_id` |
 | `006_tenant_branding` | Branding columns + `get_tenant_branding()` |
 | `007_tenant_signup` | `reserved_slugs`, `is_slug_available()`, `create_tenant_with_owner()` |
+| `008_billing` | Subscription state on `tenants`, `pending_signups`; revokes `create_tenant_with_owner` from `anon` so a workspace needs a Stripe subscription |
+| `009_billing_exemptions` | `tenants.billing_exempt`, `signup_exemptions`; `rck` is exempt both ways |
+| `010_memberships` | `employees.role` (owner/admin/member) and `invitations` replace the `allowed_emails` allowlist; the earliest account in each workspace is promoted to owner |
+| `011_fix_signup_user_settings` | Fixes signup: `handle_new_user` inserted `user_settings` without a tenant, failing every signup with "Database error saving new user"; `check_email_allowed` now reads `invitations` |
+| `012_revoke_activation_grants` | The activation functions were still callable by `anon`: Supabase's default privileges grant `EXECUTE` to the named roles, and revoking from `PUBLIC` does not touch that |
+| `013_tighten_definer_grants` | Deals with four more `SECURITY DEFINER` functions reachable by `anon`, each on its merits; drops `mark_email_used`, which had no caller left |
+| `014_revoke_public_execute` | Revokes the remaining default `PUBLIC` grant on `rls_auto_enable`. Grant hygiene, not an open door |
+| `015_subscription_enforcement` | Lapsed workspaces become read-only, enforced in the database. `NULL` status counts as good standing |
+| `016_drop_allowed_emails` | Drops `allowed_emails`. The only migration that destroys anything |
+| `017_scope_definer_functions` | Scopes `remove_member` and `set_member_role` to the caller's tenant |
+| `018_tenant_branding` | `update_tenant_branding()`, so branding is edited without opening an `UPDATE` policy on `tenants` |
+| `019_tenant_logo_storage` | Tenant logo bucket with per-tenant write policies |
+| `020_drop_stale_search_overload` | Drops the superseded `search_genetic_inventory` overload |
 
-`supabase db diff --linked` reproduces dev exactly; the only differences are
-Supabase platform artifacts (`pg_net`, an `rls_auto_enable` event trigger).
-
-**Two things to resolve before promoting to production:**
+**Two things to know before promoting to production:**
 
 - `002` and `006` insert and backfill an `rck` tenant. Correct for promoting
   RCK's production; wrong for a fresh environment for anyone else.
-- No migration creates `pg_net`, which production's `pg_cron` notification jobs
-  depend on.
+- `pg_net`, which the `pg_cron` notification jobs depend on, is now created by
+  `000_schema.sql`. The cron jobs that call the edge functions are still not
+  created by any migration, because they contain project-specific URLs. Only
+  `cleanup-activity-log` is. See §6.
 
 ### Isolation is enforced at two independent layers
 
@@ -175,8 +217,14 @@ foreign-key metadata, so hints must name the **constraint**, not the column —
 - `composite_fks.sql` — 8 checks. Runs as owner deliberately: the claim is that
   the database refuses cross-tenant references even for a caller every policy
   would allow.
+- `billing_and_roles.sql` — 40 checks covering subscription enforcement, roles
+  and invitations.
+- `preflight_prod.sql` — read-only checks run against production before
+  migrating. It reports anything that would make the migration fail.
 
-Both suites pass in full.
+Against the restored copy of production, `tenant_isolation.sql` passed 13/13
+and `billing_and_roles.sql` 39/40. The one that did not run needs a second
+billable tenant to cancel and is reported as NOT RUN rather than passed.
 
 ## 5. Operations
 
@@ -187,6 +235,11 @@ Both suites pass in full.
 ./scripts/deploy-infra.sh apply           # plan/apply; creates state backend if absent
 ./scripts/destroy-infra.sh destroy        # teardown; never removes state or lock table
 ```
+
+`deploy-infra.sh` and `destroy-infra.sh` take an action, not an environment.
+The environment comes from `TF_VAR_environment`, which defaults to `dev`; set it
+explicitly for anything else (`TF_VAR_environment=prod scripts/deploy-infra.sh
+plan`).
 
 Terraform never builds images and never runs DDL. State lives in S3
 (`genehub-infra`) with DynamoDB locking (`terraform-locks`), created on demand
@@ -212,19 +265,31 @@ to live customer data.
 
 ### Before production cutover
 
-1. **Apply `001`–`007` to production**, having resolved the `rck`-specific data
-   in `002`/`006` and the missing `pg_net`.
-2. **Notifications are untouched.** Production still runs `pg_cron` + `pg_net` +
-   Resend and three edge functions. None are tenant-aware — they will email
-   across tenant boundaries once production is multi-tenant.
-3. **Storage is untouched.** Sire images sit in a public `sire-images` bucket
-   with no tenant prefix and no per-tenant access control. Currently the largest
-   hole in the isolation story.
+The step-by-step is in [CUTOVER.md](CUTOVER.md).
+
+1. **Apply `001`–`020` to production**, using `scripts/rehearse-migration.sh`
+   then `scripts/prod-migration.sh`. The `rck` data in `002`/`006` is what
+   production wants, and `pg_net` is now created by `000`. Take the application
+   offline first, and deploy the current frontend in the same window: `008`
+   revokes an RPC the old frontend still calls.
+2. **Notifications are still not tenant-aware.** Production runs `pg_cron` +
+   `pg_net` + Resend and the `check-low-nitrogen`, `check-low-stock` and
+   `periodic-reminder` edge functions. None of them mention a tenant — they will
+   email across tenant boundaries once production is multi-tenant. Their cron
+   jobs also have to be created by hand in each project, since no migration
+   does it.
+3. **Sire image storage is still not tenant-scoped.** Sire images sit in a
+   public `sire-images` bucket with no tenant prefix and no per-tenant access
+   control; `src/api/storage.ts` writes `<sireId>_<timestamp>.<ext>` at the
+   bucket root. Currently the largest hole in the isolation story. Tenant logos
+   are the exception: `019` gives them a per-tenant bucket.
 4. **Point the real domain at AWS** and retire Vercel.
 
 ### Quality
 
-- `TODO.md` — landing page redesign, and verification of the shell caching fix
+These items were carried over from the 2026-07-29 version and were not
+re-checked in the 2026-09-20 revision. Confirm them before relying on them.
+
 - 47 tests fail on `localStorage.clear is not a function`, a jsdom/vitest
   environment issue predating this work. User-settings behaviour has no coverage.
 - Main bundle is 748 kB (194 kB gzipped); no route-level code splitting
@@ -238,8 +303,6 @@ to live customer data.
   installability. Real offline means persisting React Query to IndexedDB and
   designing for offline writes.
 - **RDS.** The isolated data tier and its security group are already in place.
-- **Roles.** Flat membership today. Adding roles later means a column and a
-  policy revision, not a redesign.
 
 ## 7. What each layer actually protects
 
@@ -261,7 +324,8 @@ Worth stating plainly, because these are easy to confuse:
 | Replace Supabase with RDS/Cognito/FastAPI | **No.** No requirement justified the cost |
 | Tenancy by subdomain or URL path | **Subdomain.** Origin isolation, and the PWA works unchanged |
 | Users in multiple tenants | **No.** One tenant per user |
-| Roles within a tenant | **None.** Membership grants access |
+| Roles within a tenant | **Owner / admin / member**, added in `010`. Originally "none"; a column and a policy revision, as predicted, not a redesign |
+| Creating a workspace | **Only through Stripe checkout** (`008`). Exempt slugs skip it via `signup_exemptions` |
 | `owner_type` value | Renamed `'rck'` → `'internal'`; label comes from tenant name |
 | Repo of record | This one. Frontend copied in without history |
 | Region / domain | `us-east-1`; `daltongorham.com` as a stand-in |

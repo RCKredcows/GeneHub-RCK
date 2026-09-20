@@ -1,93 +1,141 @@
-# GeneHub Supabase Setup
+# GeneHub Supabase project
 
-## Notifications System Setup
+Everything the app needs on the Supabase side: schema, policies, edge functions
+and tests.
 
-Go to **Supabase Dashboard > SQL Editor** and run:
-
-1. `migrations/001_notifications.sql` - Creates notification tables and views
-2. `migrations/002_notifications_cron.sql` - Sets up scheduled jobs (after Step 3)
-
-### Step 2: Set Up Resend
-
-1. Create account at [resend.com](https://resend.com)
-2. Verify your domain or use the test domain for development
-3. Get your API key from Resend dashboard
-
-### Step 3: Deploy Edge Functions
-
-```bash
-# Install Supabase CLI if not installed
-npm install -g supabase
-
-# Login to Supabase
-supabase login
-
-# Link to your project
-supabase link --project-ref YOUR_PROJECT_REF
-
-# Set the Resend API key secret
-supabase secrets set RESEND_API_KEY=re_xxxxxxxxxx
-
-# Deploy all functions
-supabase functions deploy check-low-nitrogen
-supabase functions deploy check-low-stock
-supabase functions deploy periodic-reminder
+```
+supabase/
+├── migrations/   000-020: the full schema history (see migrations/README.md)
+├── functions/    Edge functions (see functions/README.md)
+├── tests/        SQL test suites, run in the SQL editor
+└── seed.sql
 ```
 
-### Step 4: Set Up Cron Jobs
+- **Schema and policies** come from the migrations, not from files in the SQL
+  editor. `000_schema.sql` is the baseline and creates the `pg_cron` and `pg_net`
+  extensions. Apply the rest with `npx supabase db push` against a linked
+  project. `migrations/README.md` describes every migration and the plan for
+  promoting production, which is still on `000`. **Never run `supabase db reset`
+  against production.**
+- **Billing, invitations and workspace creation** are in
+  [`functions/README.md`](functions/README.md), including the Stripe setup.
+- **Tests** are in `tests/`. Run them in the SQL editor of a non-production
+  project. See [Tests](#tests).
 
-1. Edit `migrations/002_notifications_cron.sql`:
-   - Replace `YOUR_PROJECT_REF` with your Supabase project reference
-   - Replace `YOUR_ANON_KEY` with your Supabase anon key
-
-2. Run the SQL in Supabase Dashboard > SQL Editor
-
-### Step 5: Test
-
-Test each function manually:
+## Setting up a project
 
 ```bash
-# Test low nitrogen check
-curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/check-low-nitrogen \
-  -H "Authorization: Bearer YOUR_ANON_KEY" \
-  -H "Content-Type: application/json"
-
-# Test low stock check
-curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/check-low-stock \
-  -H "Authorization: Bearer YOUR_ANON_KEY" \
-  -H "Content-Type: application/json"
-
-# Test periodic reminder
-curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/periodic-reminder \
-  -H "Authorization: Bearer YOUR_ANON_KEY" \
-  -H "Content-Type: application/json"
+cd frontend
+npx supabase login
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
 ```
 
-## Notification Schedule
+Then deploy the functions and set their secrets as described in
+[`functions/README.md`](functions/README.md). The notification functions below
+also need `RESEND_API_KEY`:
+
+```bash
+npx supabase secrets set RESEND_API_KEY=re_xxxxxxxxxx
+npx supabase functions deploy check-low-nitrogen
+npx supabase functions deploy check-low-stock
+npx supabase functions deploy periodic-reminder
+```
+
+Create a [Resend](https://resend.com) account and verify your domain, or use
+their test domain for development, to get the API key.
+
+## Notifications
+
+Three edge functions send email through Resend:
 
 | Function | Schedule | Description |
 |----------|----------|-------------|
-| `check-low-nitrogen` | Every 10 hours | Checks tanks below nitrogen threshold |
-| `check-low-stock` | Every 10 hours | Checks medical inventory below reorder threshold |
+| `check-low-nitrogen` | Every 10 hours | Tanks below their nitrogen threshold |
+| `check-low-stock` | Every 10 hours | Medical inventory below its reorder threshold |
 | `periodic-reminder` | 1st of month, 9 AM UTC | Monthly summary reminder |
 
-## Cooldown Periods
+Recipients are users whose settings in `user_settings` enable the notification.
+`notification_log` records what was sent, and each function skips anything sent
+within its cooldown:
 
-- **Low Nitrogen Alerts**: 5 days per tank
-- **Low Stock Alerts**: 5 days per item
-- **Periodic Reminders**: 30 days per user
+- Low nitrogen: 5 days per tank
+- Low stock: 5 days per item
+- Periodic reminder: 30 days per user
 
-## Monitoring
+### Scheduling
 
-View cron job status:
+**No migration creates these cron jobs**, because each one contains a
+project-specific URL and key. `000_schema.sql` creates only
+`cleanup-activity-log`, which deletes activity older than 30 days. After
+deploying to a new project, create the three jobs yourself in **Dashboard >
+Database > Cron Jobs**, or with SQL modelled on the existing project's
+definitions:
 
 ```sql
--- All scheduled jobs
-SELECT * FROM cron.job;
-
--- Recent job runs
-SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 20;
-
--- Notification log
-SELECT * FROM notification_log ORDER BY sent_at DESC LIMIT 50;
+-- Inspect what the working project has, and copy its shape
+SELECT jobname, schedule, command FROM cron.job;
 ```
+
+Each job calls its function over HTTP with `pg_net`, sending the project's anon
+key as a bearer token:
+
+```sql
+SELECT cron.schedule(
+  'check-low-nitrogen',
+  '0 */10 * * *',
+  $$SELECT net.http_post(
+      url     := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/check-low-nitrogen',
+      headers := jsonb_build_object(
+                   'Authorization', 'Bearer YOUR_ANON_KEY',
+                   'Content-Type',  'application/json')
+    );$$
+);
+```
+
+That is a template, so check it against the existing jobs before relying on it.
+Do the same for `check-low-stock` and, with a `0 9 1 * *` schedule,
+`periodic-reminder`.
+
+### Testing by hand
+
+```bash
+curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/check-low-nitrogen \
+  -H "Authorization: Bearer YOUR_ANON_KEY" \
+  -H "Content-Type: application/json"
+```
+
+Swap in `check-low-stock` or `periodic-reminder` for the others.
+
+### Monitoring
+
+```sql
+SELECT * FROM cron.job;                                                 -- scheduled jobs
+SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 20;   -- recent runs
+SELECT * FROM notification_log ORDER BY sent_at DESC LIMIT 50;          -- what was sent
+```
+
+### Not tenant-aware yet
+
+These functions use the service-role client and read alerts and user settings
+across **all** workspaces, with no tenant filter. Once more than one workspace
+shares a project, they will email across tenant boundaries. Making them
+tenant-aware is on the list in `AWS_MIGRATION_PLAN.md` §6 and is a blocker for
+running production as multi-tenant.
+
+## Tests
+
+Run these in the SQL editor of a non-production project. Every file ends in
+`ROLLBACK`, so nothing is kept. `tenant_isolation.sql` and
+`billing_and_roles.sql` also need the email near the top changed to a real user
+in that project; they ship with a specific address in them.
+
+| File | Checks |
+|------|--------|
+| `tests/tenant_isolation.sql` | Cross-tenant reads and writes are refused |
+| `tests/composite_fks.sql` | Cross-tenant references are rejected by the database itself |
+| `tests/billing_and_roles.sql` | Subscription enforcement, roles and invitations |
+| `tests/preflight_prod.sql` | Read-only pre-flight for the production migration. Run it in production's SQL editor |
+
+Run the first three after any change to policies, constraints or
+`SECURITY DEFINER` functions.

@@ -117,8 +117,14 @@ it prints — Terraform does not build images, it points at one that exists.
 
 Put the tag from step 6 into `prod.tfvars` as `image_tag`, then:
 
+`deploy-infra.sh` takes an action (`plan`, `apply`, `init`, `output`), not an
+environment. The environment comes from `TF_VAR_environment`, which defaults to
+`dev`, so leaving it unset would plan against development. Set it explicitly:
+
 ```bash
-scripts/deploy-infra.sh prod
+export TF_VAR_environment=prod
+scripts/deploy-infra.sh plan     # read the plan first
+scripts/deploy-infra.sh apply
 ```
 
 First apply creates the hosted zone, the certificate, the load balancer, and
