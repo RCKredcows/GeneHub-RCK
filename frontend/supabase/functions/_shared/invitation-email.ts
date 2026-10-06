@@ -27,12 +27,13 @@ export interface InvitationEmail {
 
 export async function sendInvitationEmail(invite: InvitationEmail) {
   const siteUrl = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://genehub.app'
-  const host = siteUrl.replace(/^https?:\/\//, '')
+  // Keep the site's own scheme: https in production, http on a local stack.
+  const { protocol, host } = new URL(siteUrl)
 
   // Signup happens on the workspace's own subdomain: the session has to be
   // established on the origin the person will actually use.
   const signupUrl =
-    `https://${invite.workspaceSlug}.${host}/signup?email=${encodeURIComponent(invite.email)}`
+    `${protocol}//${invite.workspaceSlug}.${host}/signup?email=${encodeURIComponent(invite.email)}`
 
   return await sendEmail({
     to: invite.email,

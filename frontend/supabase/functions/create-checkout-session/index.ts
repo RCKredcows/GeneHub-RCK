@@ -104,8 +104,9 @@ serve(async (request) => {
       const result = data?.[0]
       if (!result?.ok) return json({ error: result?.error_code ?? 'signup_failed' }, 409)
 
-      const host = SITE_URL.replace(/^https?:\/\//, '')
-      const target = `https://${slug}.${host}/signup?email=${encodeURIComponent(email.trim().toLowerCase())}`
+      // Keep the site's own scheme: https in production, http on a local stack.
+      const { protocol, host } = new URL(SITE_URL)
+      const target = `${protocol}//${slug}.${host}/signup?email=${encodeURIComponent(email.trim().toLowerCase())}`
 
       return json({ url: target })
     }
