@@ -1,4 +1,4 @@
-# Migrating production from 000 to 020
+# Migrating production from 000 to 022
 
 **Production is at migration 000.** It has never had 001 through 007, so this
 is not a billing upgrade — it is the entire multi-tenancy conversion followed
@@ -14,7 +14,8 @@ schema and replays from 000. That is what the rehearsal is for.
 ## What has already been proven
 
 The full path 001 → 020 has been applied to a restored copy of production, on a
-local stack, with these results:
+local stack, with these results. (021 and 022 came later; re-run the rehearsal
+before the window so they are covered too.)
 
 | | |
 |---|---|
@@ -92,7 +93,7 @@ npx supabase db push --db-url "$PROD_DB_URL" --include-all
 
 Production's history already holds 46 timestamped migrations from the original
 repository, from `20251228014928` to `20260226014958`. Our files are numbered
-`000`–`020`, and the CLI compares versions as strings — so `'020' < '2025…'`,
+`000`–`022`, and the CLI compares versions as strings — so `'022' < '2025…'`,
 and every one of ours sorts *before* production's latest. `db push` only
 applies migrations that come after the last remote one, so without the flag it
 finds nothing to do and says so cheerfully.
@@ -164,3 +165,15 @@ out on day one.
 **020** — drops the superseded `search_genetic_inventory` overload. Production
 carries two; a caller that omits `status_filter` silently lands on the old one
 and gets checked-out inventory alongside stored.
+
+**021** — adds `tenant_id` to `v_low_nitrogen_alerts` and `v_low_stock_alerts`.
+The notification functions read them as the service role, which bypasses RLS,
+so without it they cannot tell one workspace's alerts from another's.
+
+**022** — puts the `sire-images` bucket in a migration (production's was made by
+hand) and scopes writes to a `<tenant_id>/` folder, replacing four policies that
+let any signed-in user change any image. Existing files sit at the root:
+**run `scripts/move-sire-images.mjs` straight after this migration** to move
+them into RCK's folder and rewrite `sires.image_url`. Adds
+`current_tenant_may_write()`, because `tenant_may_write(uuid)` is deliberately
+not callable by `authenticated` (017).

@@ -54,7 +54,7 @@ AWS holds no application data. Everything stateful is in Supabase.
 ├── frontend/                 The app, and its Supabase project
 │   ├── src/                  React source (see "Where things live")
 │   ├── supabase/
-│   │   ├── migrations/       000-020, the full schema history
+│   │   ├── migrations/       000-022, the full schema history
 │   │   ├── functions/        Edge functions (Deno)
 │   │   ├── tests/            SQL test suites for isolation and billing
 │   │   └── seed.sql
@@ -179,7 +179,7 @@ goes through a `SECURITY DEFINER` function.
 
 ## Database and migrations
 
-Migrations are in `frontend/supabase/migrations/` and numbered `000`-`020`.
+Migrations are in `frontend/supabase/migrations/` and numbered `000`-`022`.
 `000_schema.sql` is the baseline; the rest layer on tenancy, RLS, composite
 FKs, branding, signup, billing, memberships and hardening. The generated types
 are in `src/types/database.types.ts`.
@@ -229,10 +229,9 @@ Functions live in `frontend/supabase/functions/`:
 | `check-low-stock` | Alerts on low medical stock (cron, every 10 hours) | n/a |
 | `periodic-reminder` | Monthly summary (cron, 1st of month) | n/a |
 
-The three cron-driven functions are **not tenant-aware yet**: they read alerts
-and users across all workspaces, and their cron jobs must be created by hand in
-each project. See `frontend/supabase/README.md` before running more than one
-workspace on a project.
+The three cron-driven functions email each user about their own workspace only
+(migration `021`). Their cron jobs must still be created by hand in each
+project. See `frontend/supabase/README.md`.
 
 Secrets are set with `npx supabase secrets set`: `STRIPE_SECRET_KEY`,
 `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`, `PUBLIC_SITE_URL`, `RESEND_API_KEY`

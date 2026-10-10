@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# Migrate production from 000 to 020.
+# Migrate production from 000 to 022.
 #
 # Runs the plan in frontend/supabase/migrations/README.md: pre-flight, back up,
-# repair the history to 000, apply 001-020, verify. It stops at every point
+# repair the history to 000, apply 001-022, verify. It stops at every point
 # where a person should look at something before continuing.
 #
 # The CLI is never linked to production. Every command targets it by
@@ -69,7 +69,7 @@ cd "$FRONTEND"
 
 cat <<'EOF'
 
-  This migrates PRODUCTION from 000 to 020. It applies the whole multi-tenancy
+  This migrates PRODUCTION from 000 to 022. It applies the whole multi-tenancy
   conversion (002 adds tenant_id to fourteen tables and makes it NOT NULL),
   switches on row level security everywhere (003), and revokes an RPC the
   currently deployed frontend still calls (008).
@@ -175,16 +175,16 @@ npx supabase migration repair --db-url "$PROD_DB_URL" --status applied 000 \
 # --include-all is required, not optional.
 #
 # Production's history holds 46 timestamped migrations from the original
-# repository (20251228014928 onward). Our files are numbered 000-020, and
+# repository (20251228014928 onward). Our files are numbered 000-022, and
 # versions are compared as strings -- so every one of ours sorts before
 # production's latest. Without --include-all, `db push` treats them as
 # already-superseded and applies nothing at all, silently.
 log "What would be applied"
 npx supabase db push --db-url "$PROD_DB_URL" --include-all --dry-run 2>&1 | tee -a "$LOG"
 
-confirm "Is that exactly 001 through 020, and nothing else?" "yes"
+confirm "Is that exactly 001 through 022, and nothing else?" "yes"
 
-log "Applying 001-020"
+log "Applying 001-022"
 npx supabase db push --db-url "$PROD_DB_URL" --include-all --yes 2>&1 | tee -a "$LOG" \
     || fail "migrations did not apply cleanly -- production is part way, see $LOG"
 
@@ -209,7 +209,7 @@ if diff -q "$BEFORE" "$AFTER" >/dev/null; then
 else
     warn "ROW COUNTS CHANGED:"
     diff "$BEFORE" "$AFTER" | tee -a "$LOG" || true
-    warn "Nothing in 001-020 should delete a record. Investigate before going live."
+    warn "Nothing in 001-022 should delete a record. Investigate before going live."
 fi
 
 log "Workspace, owner, and billing state"
@@ -231,7 +231,7 @@ FROM public.employees;" | tee -a "$LOG"
 
 cat <<EOF | tee -a "$LOG"
 
-Migration finished. Production is at 020$([ "$DEFER_016" = "1" ] && echo " (016 deferred)").
+Migration finished. Production is at 022$([ "$DEFER_016" = "1" ] && echo " (016 deferred)").
 
 Backup and logs: $BACKUP_DIR
 

@@ -5,7 +5,7 @@ and tests.
 
 ```
 supabase/
-├── migrations/   000-020: the full schema history (see migrations/README.md)
+├── migrations/   000-022: the full schema history (see migrations/README.md)
 ├── functions/    Edge functions (see functions/README.md)
 ├── tests/        SQL test suites, run in the SQL editor
 └── seed.sql
@@ -115,13 +115,18 @@ SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 20;   -- recen
 SELECT * FROM notification_log ORDER BY sent_at DESC LIMIT 50;          -- what was sent
 ```
 
-### Not tenant-aware yet
+### One workspace at a time
 
-These functions use the service-role client and read alerts and user settings
-across **all** workspaces, with no tenant filter. Once more than one workspace
-shares a project, they will email across tenant boundaries. Making them
-tenant-aware is on the list in `AWS_MIGRATION_PLAN.md` §6 and is a blocker for
-running production as multi-tenant.
+These functions use the service-role client, which bypasses RLS, so they scope
+by hand: each user is sent only the alerts and counts of their own workspace
+(`user_settings.tenant_id`, matched against the `tenant_id` that 021 put on the
+alert views). Every `notification_log` row records its `tenant_id` explicitly;
+the column's default is null for the service role, and without the row the
+cooldown would never hold.
+
+For local testing, set `EMAIL_DELIVERY=log` in `supabase/functions/.env` and the
+functions print each message instead of sending it. Never set it on a hosted
+project.
 
 ## Tests
 
