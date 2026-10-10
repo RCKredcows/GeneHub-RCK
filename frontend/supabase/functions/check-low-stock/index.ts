@@ -7,7 +7,8 @@ serve(async (_req) => {
   try {
     const supabase = getSupabaseAdmin();
 
-    // Get all low stock alerts (simplified view - no user filtering)
+    // Every workspace's low stock alerts. The service role bypasses RLS, so
+    // each one is matched to recipients by tenant_id below (021).
     const { data: alerts, error: alertsError } = await supabase
       .from('v_low_stock_alerts')
       .select('*');
@@ -22,7 +23,7 @@ serve(async (_req) => {
     // Get all users with low stock notifications enabled
     const { data: settings, error: settingsError } = await supabase
       .from('user_settings')
-      .select('user_id, notification_email')
+      .select('user_id, notification_email, tenant_id')
       .eq('email_notifications_enabled', true)
       .eq('notify_low_medical_stock', true);
 
@@ -37,9 +38,11 @@ serve(async (_req) => {
 
     // Send notifications to each user with notifications enabled
     for (const userSetting of settings) {
-      // Check cooldown for each item for this user
+      // Only this user's own workspace's items. Removing a member deletes
+      // their auth user, which cascades to user_settings, so everyone here is
+      // a current member of userSetting.tenant_id.
       const itemsToNotify = [];
-      for (const alert of alerts) {
+      for (const alert of alerts.filter((a) => a.tenant_id === userSetting.tenant_id)) {
         const recentlySent = await wasRecentlySent({
           userId: userSetting.user_id,
           notificationType: 'low_medical_stock',
@@ -82,6 +85,7 @@ serve(async (_req) => {
       // Log notifications
       for (const item of itemsToNotify) {
         await logNotification({
+          tenantId: userSetting.tenant_id,
           userId: userSetting.user_id,
           notificationType: 'low_medical_stock',
           referenceId: item.id,

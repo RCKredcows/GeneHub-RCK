@@ -1035,6 +1035,7 @@ export type Database = {
           nitrogen_percentage: number | null
           tank_id: string | null
           tank_name: string | null
+          tenant_id: string | null
         }
         Insert: {
           low_level_threshold?: number | null
@@ -1043,6 +1044,7 @@ export type Database = {
           nitrogen_percentage?: never
           tank_id?: string | null
           tank_name?: string | null
+          tenant_id?: string | null
         }
         Update: {
           low_level_threshold?: number | null
@@ -1051,6 +1053,7 @@ export type Database = {
           nitrogen_percentage?: never
           tank_id?: string | null
           tank_name?: string | null
+          tenant_id?: string | null
         }
         Relationships: []
       }
@@ -1061,6 +1064,7 @@ export type Database = {
           item_name: string | null
           quantity: number | null
           reorder_threshold: number | null
+          tenant_id: string | null
         }
         Relationships: []
       }

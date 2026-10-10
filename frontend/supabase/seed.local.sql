@@ -24,4 +24,16 @@ FROM (VALUES
      ) AS v(slug, email, full_name)
 JOIN public.tenants t ON t.slug = v.slug;
 
+-- Alerts in both workspaces, so the notification functions have something to
+-- keep apart. seed.sql gives RCK a low tank and low stock; Bar 7 gets one of
+-- each here. Both workspaces have a 'Tank 1' and an 'AI Sheaths, universal',
+-- so a function that matched by name instead of tenant_id would show it.
+UPDATE public.tanks tk SET nitrogen_level = 2       -- 6.7% of 30, under its 8%
+FROM public.tenants t
+WHERE t.id = tk.tenant_id AND t.slug = 'bar7' AND tk.tank_name = 'Tank 1';
+
+UPDATE public.supply_inventory si SET quantity = 40  -- under its threshold of 100
+FROM public.tenants t
+WHERE t.id = si.tenant_id AND t.slug = 'bar7' AND si.item_name = 'AI Sheaths, universal';
+
 COMMIT;

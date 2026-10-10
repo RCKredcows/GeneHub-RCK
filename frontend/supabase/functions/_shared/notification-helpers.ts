@@ -46,6 +46,12 @@ export async function wasRecentlySent(params: NotificationCheckParams): Promise<
 
 export interface LogNotificationParams {
   userId: string;
+  // Required, and set explicitly: notification_log.tenant_id is NOT NULL (002)
+  // and defaults to current_tenant_id() (004), which is null for the service
+  // role these functions run as. Without it every insert fails, nothing is
+  // logged, and wasRecentlySent() never finds a record, so the cooldown never
+  // holds and the same alert goes out on every run.
+  tenantId: string;
   notificationType: 'low_nitrogen' | 'low_medical_stock' | 'periodic_reminder';
   referenceId?: string;
   referenceName?: string;
@@ -61,6 +67,7 @@ export async function logNotification(params: LogNotificationParams): Promise<vo
   const { error } = await supabase
     .from('notification_log')
     .insert({
+      tenant_id: params.tenantId,
       user_id: params.userId,
       notification_type: params.notificationType,
       reference_id: params.referenceId || null,

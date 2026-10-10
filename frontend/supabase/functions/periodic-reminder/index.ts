@@ -10,7 +10,7 @@ serve(async (_req) => {
     // Get all users with periodic reminders enabled
     const { data: settings, error: settingsError } = await supabase
       .from('user_settings')
-      .select('user_id, notification_email')
+      .select('user_id, notification_email, tenant_id')
       .eq('email_notifications_enabled', true)
       .eq('notify_periodic_reminder', true);
 
@@ -21,13 +21,24 @@ serve(async (_req) => {
       });
     }
 
-    // Get global stats (since tables don't have user_id)
-    const [tanksRes, lowNitrogenRes, medicalRes, lowStockRes] = await Promise.all([
-      supabase.from('tanks').select('id', { count: 'exact', head: true }),
-      supabase.from('v_low_nitrogen_alerts').select('tank_id', { count: 'exact', head: true }),
-      supabase.from('supply_inventory').select('id', { count: 'exact', head: true }),
-      supabase.from('v_low_stock_alerts').select('item_id', { count: 'exact', head: true })
-    ]);
+    // Each user's summary covers their own workspace only. The service role
+    // bypasses RLS, so every count is filtered by tenant_id explicitly, once per
+    // workspace that has someone to email.
+    const statsByTenant = new Map();
+    for (const tenantId of new Set(settings.map((s) => s.tenant_id))) {
+      const [tanksRes, lowNitrogenRes, medicalRes, lowStockRes] = await Promise.all([
+        supabase.from('tanks').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+        supabase.from('v_low_nitrogen_alerts').select('tank_id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+        supabase.from('supply_inventory').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+        supabase.from('v_low_stock_alerts').select('item_id', { count: 'exact', head: true }).eq('tenant_id', tenantId)
+      ]);
+      statsByTenant.set(tenantId, {
+        tankCount: tanksRes.count || 0,
+        lowNitrogenCount: lowNitrogenRes.count || 0,
+        medicalItemCount: medicalRes.count || 0,
+        lowStockCount: lowStockRes.count || 0
+      });
+    }
 
     const results = [];
 
@@ -51,10 +62,7 @@ serve(async (_req) => {
       // Send email
       const html = periodicReminderTemplate({
         userName,
-        tankCount: tanksRes.count || 0,
-        lowNitrogenCount: lowNitrogenRes.count || 0,
-        medicalItemCount: medicalRes.count || 0,
-        lowStockCount: lowStockRes.count || 0
+        ...statsByTenant.get(userSetting.tenant_id)
       });
 
       const emailResult = await sendEmail({
@@ -64,6 +72,7 @@ serve(async (_req) => {
       });
 
       await logNotification({
+        tenantId: userSetting.tenant_id,
         userId: userSetting.user_id,
         notificationType: 'periodic_reminder',
         emailSentTo: userEmail,
