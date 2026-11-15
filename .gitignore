@@ -98,3 +98,6 @@ Desktop.ini
 # graphify knowledge graph output (keep the report, ignore the rest)
 graphify-out/*
 !graphify-out/GRAPH_REPORT.md
+
+# Private planning docs and client documents, kept out of commits
+private-docs/
