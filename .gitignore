@@ -94,6 +94,7 @@ Desktop.ini
 # Production dumps taken for migration rehearsals. Real customer data.
 .rehearsal/
 .rehearsal.env
+.wrangler/
 
 # graphify knowledge graph output (keep the report, ignore the rest)
 graphify-out/*

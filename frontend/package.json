@@ -8,6 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "preview:cf": "vite build && wrangler dev",
+    "deploy": "wrangler deploy",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage"
@@ -39,6 +41,7 @@
     "supabase": "^2.70.5",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.16",
+    "wrangler": "^4.153.0"
   }
 }

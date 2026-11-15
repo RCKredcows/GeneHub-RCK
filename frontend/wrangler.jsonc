@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Cloudflare serves dist/ directly. The script only sees requests that match
+  // no file and are not page navigations; see worker/index.ts for why it exists.
+  "name": "genehub",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-10-06",
+  // Off: tenantSlugFromHostname() would read genehub.<account>.workers.dev
+  // as a workspace named "genehub".
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [
+    // The apex: the landing page. A Custom Domain creates its own DNS record,
+    // and refuses to if one already exists.
+    { "pattern": "genehubapp.com", "custom_domain": true },
+    // Every workspace. Custom Domains cannot be wildcards; routes can. Needs a
+    // proxied wildcard record (AAAA * 100::) to receive traffic.
+    { "pattern": "*.genehubapp.com/*", "zone_name": "genehubapp.com" }
+  ]
+}
