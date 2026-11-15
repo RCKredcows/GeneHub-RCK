@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm your GeneHub account</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f4;">
+  <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid rgba(15,21,18,0.1); border-radius: 16px; overflow: hidden;">
+    <div style="padding: 32px 32px 8px;">
+      <p style="margin: 0 0 24px; color: #076e5f; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;">
+        GeneHub
+      </p>
+      <h1 style="margin: 0; color: #0f1512; font-size: 24px; line-height: 1.25;">
+        Confirm your email address
+      </h1>
+      <p style="margin: 16px 0 0; color: #5c645f; font-size: 15px; line-height: 1.6;">
+        {{ if .Data.first_name }}Hi {{ .Data.first_name }}, thanks{{ else }}Thanks{{ end }} for
+        setting up your GeneHub account. Confirm this address to finish signing up, and
+        you'll go straight to your workspace.
+      </p>
+    </div>
+
+    <div style="padding: 24px 32px 32px;">
+      <a href="{{ .ConfirmationURL }}"
+         style="display: inline-block; padding: 14px 28px; border-radius: 999px; background: #0f1512; color: #ffffff; font-size: 15px; font-weight: 500; text-decoration: none;">
+        Confirm email address
+      </a>
+
+      <p style="margin: 20px 0 0; color: #5c645f; font-size: 13px; line-height: 1.6;">
+        If the button does not work, paste this into your browser:<br>
+        <span style="color: #076e5f; word-break: break-all;">{{ .ConfirmationURL }}</span>
+      </p>
+    </div>
+
+    <div style="padding: 20px 32px; border-top: 1px solid rgba(15,21,18,0.1); background: #fbfbf8;">
+      <p style="margin: 0; color: #5c645f; font-size: 12px; line-height: 1.5;">
+        Sent to {{ .Email }}. Didn't sign up for GeneHub? Ignore this email and no account
+        will be confirmed.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
