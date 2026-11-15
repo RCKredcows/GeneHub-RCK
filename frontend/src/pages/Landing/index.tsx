@@ -7,13 +7,23 @@ import Setup from './Setup'
 import Showcase from './Showcase'
 import './styles.css'
 
-/** Turns an operation name into a URL-safe subdomain. */
-function toSlug(value: string): string {
+/**
+ * Cleans the address field as it is typed: lowercase, and anything other than
+ * a letter or digit becomes a hyphen. A trailing hyphen is kept, because the
+ * visitor may be about to type the next word; trimming it on every keystroke
+ * made a hyphen impossible to type.
+ */
+function toSlugInput(value: string): string {
   return value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/^-+/, '')
     .slice(0, 40)
+}
+
+/** Turns an operation name, or the address field, into a URL-safe subdomain. */
+function toSlug(value: string): string {
+  return toSlugInput(value).replace(/-+$/, '')
 }
 
 const MESSAGES: Record<CreateTenantError, string> = {
@@ -86,7 +96,10 @@ function useTypewriter(phrases: string[], active: boolean): string {
 
 export default function Landing() {
   const [name, setName] = useState('')
-  const [slug, setSlug] = useState('')
+  // What is in the address field, which may end in a hyphen mid-word. Every
+  // check and the checkout use slug, the trimmed form.
+  const [slugInput, setSlugInput] = useState('')
+  const slug = toSlug(slugInput)
   const [slugEdited, setSlugEdited] = useState(false)
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
@@ -111,7 +124,7 @@ export default function Landing() {
 
   // Derive the subdomain from the workspace name until the user takes it over.
   useEffect(() => {
-    if (!slugEdited) setSlug(toSlug(name))
+    if (!slugEdited) setSlugInput(toSlug(name))
   }, [name, slugEdited])
 
   // Debounced, so typing does not fire a request per keystroke.
@@ -347,11 +360,12 @@ export default function Landing() {
                 <input
                   id="slug"
                   type="text"
-                  value={slug}
+                  value={slugInput}
                   onChange={(event) => {
                     setSlugEdited(true)
-                    setSlug(toSlug(event.target.value))
+                    setSlugInput(toSlugInput(event.target.value))
                   }}
+                  onBlur={() => setSlugInput(slug)}
                   placeholder={toSlug(typed) || 'your-operation'}
                   autoComplete="off"
                   spellCheck={false}
