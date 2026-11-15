@@ -279,12 +279,14 @@ Infrastructure configuration is in `infra/terraform/`. Copy
 `dev.tfvars.example` to `dev.tfvars`; `*.tfvars` is gitignored. Each
 environment reads its own `<env>.tfvars`.
 
-**Moving production.** The production database is still on migration `000`, and
-the move to AWS is being rolled out. Follow [`CUTOVER.md`](CUTOVER.md), and
-rehearse first with `scripts/rehearse-migration.sh` (read-only against
-production, restores into a throwaway local database) before
-`scripts/prod-migration.sh`. Both use `.rehearsal.env`, copied from
-`.rehearsal.env.example` and gitignored because it holds a production password.
+**RCK's system is separate, and stays that way.** RCK runs the old
+single-tenant app on Vercel against its own Supabase project
+(`xnusvnwzvinhopkwmljl`), at migration `000`, for good. Nothing in this branch
+is deployed to it: never `db push` or deploy functions against that project.
+The multi-tenant platform gets a new project of its own; see
+[`frontend/supabase/migrations/README.md`](frontend/supabase/migrations/README.md).
+`CUTOVER.md` describes the abandoned in-place migration and is kept only as a
+record.
 
 ## Where things live in the frontend
 

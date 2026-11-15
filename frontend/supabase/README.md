@@ -14,9 +14,9 @@ supabase/
 - **Schema and policies** come from the migrations, not from files in the SQL
   editor. `000_schema.sql` is the baseline and creates the `pg_cron` and `pg_net`
   extensions. Apply the rest with `npx supabase db push` against a linked
-  project. `migrations/README.md` describes every migration and the plan for
-  promoting production, which is still on `000`. **Never run `supabase db reset`
-  against production.**
+  project. `migrations/README.md` describes every migration. **Never apply them to
+  RCK's project**, which stays on `000` for good, and never run
+  `supabase db reset` against a hosted project.
 - **Billing, invitations and workspace creation** are in
   [`functions/README.md`](functions/README.md), including the Stripe setup.
 - **Tests** are in `tests/`. Run them in the SQL editor of a non-production
@@ -140,7 +140,6 @@ in that project; they ship with a specific address in them.
 | `tests/tenant_isolation.sql` | Cross-tenant reads and writes are refused |
 | `tests/composite_fks.sql` | Cross-tenant references are rejected by the database itself |
 | `tests/billing_and_roles.sql` | Subscription enforcement, roles and invitations |
-| `tests/preflight_prod.sql` | Read-only pre-flight for the production migration. Run it in production's SQL editor |
 
-Run the first three after any change to policies, constraints or
+Run them after any change to policies, constraints or
 `SECURITY DEFINER` functions.

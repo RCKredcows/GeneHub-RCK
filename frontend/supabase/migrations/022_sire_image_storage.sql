@@ -27,12 +27,9 @@
 -- upload in every bucket, logos included. current_tenant_may_write() below
 -- answers only for the caller's own workspace, as current_tenant_id() does.
 --
--- Existing files sit at the bucket root. scripts/move-sire-images.mjs moves
--- them into RCK's folder and rewrites sires.image_url to match; it runs right
--- after this migration in the production window. Until it does, root files
--- stay readable but no user can change them.
+-- Files at the bucket root stay readable, but no user can change them.
 --
--- The limits fit every file in production (queried 2026-10-09: jpeg, webp,
+-- The limits fit every sire image RCK had (queried 2026-10-09: jpeg, webp,
 -- png, gif and avif, the largest 1.72 MB). They apply to new uploads only.
 -- =====================================================
 
