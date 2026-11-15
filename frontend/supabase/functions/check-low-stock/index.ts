@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { getSupabaseAdmin, wasRecentlySent, logNotification } from '../_shared/notification-helpers.ts';
+import { getSupabaseAdmin, wasRecentlySent, logNotification, workspaceUrlsByTenant } from '../_shared/notification-helpers.ts';
 import { sendEmail } from '../_shared/resend.ts';
 import { lowStockTemplate } from '../_shared/email-templates.ts';
 
@@ -34,10 +34,14 @@ serve(async (_req) => {
       });
     }
 
+    const urls = await workspaceUrlsByTenant(settings.map((s) => s.tenant_id));
     const results = [];
 
     // Send notifications to each user with notifications enabled
     for (const userSetting of settings) {
+      const workspaceUrl = urls.get(userSetting.tenant_id);
+      if (!workspaceUrl) continue;
+
       // Only this user's own workspace's items. Removing a member deletes
       // their auth user, which cascades to user_settings, so everyone here is
       // a current member of userSetting.tenant_id.
@@ -73,6 +77,7 @@ serve(async (_req) => {
       // Send email
       const html = lowStockTemplate({
         userName,
+        workspaceUrl,
         items: itemsToNotify
       });
 

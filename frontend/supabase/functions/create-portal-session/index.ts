@@ -16,6 +16,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import Stripe from 'https://esm.sh/stripe@17.5.0?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { siteUrl } from '../_shared/site-url.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   apiVersion: '2024-12-18.acacia',
@@ -72,11 +73,9 @@ serve(async (request) => {
     if (tenant?.billing_exempt) return json({ error: 'billing_exempt' }, 409)
     if (!tenant?.stripe_customer_id) return json({ error: 'no_subscription' }, 409)
 
-    const siteUrl = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://genehub.app'
-
     const session = await stripe.billingPortal.sessions.create({
       customer: tenant.stripe_customer_id,
-      return_url: `${request.headers.get('origin') ?? siteUrl}/settings`,
+      return_url: `${request.headers.get('origin') ?? siteUrl().origin}/settings`,
     })
 
     return json({ url: session.url })

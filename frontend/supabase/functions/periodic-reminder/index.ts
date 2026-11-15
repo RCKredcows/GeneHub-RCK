@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { getSupabaseAdmin, wasRecentlySent, logNotification } from '../_shared/notification-helpers.ts';
+import { getSupabaseAdmin, wasRecentlySent, logNotification, workspaceUrlsByTenant } from '../_shared/notification-helpers.ts';
 import { sendEmail } from '../_shared/resend.ts';
 import { periodicReminderTemplate } from '../_shared/email-templates.ts';
 
@@ -40,9 +40,13 @@ serve(async (_req) => {
       });
     }
 
+    const urls = await workspaceUrlsByTenant(settings.map((s) => s.tenant_id));
     const results = [];
 
     for (const userSetting of settings) {
+      const workspaceUrl = urls.get(userSetting.tenant_id);
+      if (!workspaceUrl) continue;
+
       // Check 30-day cooldown
       const recentlySent = await wasRecentlySent({
         userId: userSetting.user_id,
@@ -62,6 +66,7 @@ serve(async (_req) => {
       // Send email
       const html = periodicReminderTemplate({
         userName,
+        workspaceUrl,
         ...statsByTenant.get(userSetting.tenant_id)
       });
 

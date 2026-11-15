@@ -1,10 +1,23 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { workspaceUrl } from './site-url.ts';
 
 export function getSupabaseAdmin() {
   return createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
+}
+
+// Each workspace's own address, keyed by tenant id, for the links in alert
+// emails. A tenant missing from the result has been deleted; skip its users.
+export async function workspaceUrlsByTenant(tenantIds: string[]): Promise<Map<string, string>> {
+  const { data, error } = await getSupabaseAdmin()
+    .from('tenants')
+    .select('id, slug')
+    .in('id', [...new Set(tenantIds)]);
+
+  if (error) throw error;
+  return new Map((data ?? []).map((t) => [t.id, workspaceUrl(t.slug)]));
 }
 
 export interface NotificationCheckParams {

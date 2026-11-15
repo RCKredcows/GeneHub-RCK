@@ -52,7 +52,10 @@ export const signUp = async ({ email, password, metadata = {} }: SignUpParams) =
       email,
       password,
       options: {
-        data: finalMetadata
+        data: finalMetadata,
+        // Without this the confirmation link falls back to Auth's Site URL,
+        // the apex, which has no login. The session belongs on this workspace.
+        emailRedirectTo: `${window.location.origin}/`
       }
     });
 

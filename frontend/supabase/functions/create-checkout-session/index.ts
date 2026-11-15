@@ -15,6 +15,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import Stripe from 'https://esm.sh/stripe@17.5.0?target=deno'
 import { getSupabaseAdmin } from '../_shared/notification-helpers.ts'
+import { siteUrl, workspaceUrl } from '../_shared/site-url.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   apiVersion: '2024-12-18.acacia',
@@ -25,7 +26,6 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
 // signup, neither of which anon may do.
 const db = getSupabaseAdmin()
 
-const SITE_URL = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://genehub.app'
 // Configurable so trial length can change -- or be set to 0 for a live test
 // that actually charges -- without editing and redeploying this function.
 const TRIAL_DAYS = Number(Deno.env.get('STRIPE_TRIAL_DAYS') ?? '14')
@@ -104,9 +104,7 @@ serve(async (request) => {
       const result = data?.[0]
       if (!result?.ok) return json({ error: result?.error_code ?? 'signup_failed' }, 409)
 
-      // Keep the site's own scheme: https in production, http on a local stack.
-      const { protocol, host } = new URL(SITE_URL)
-      const target = `${protocol}//${slug}.${host}/signup?email=${encodeURIComponent(email.trim().toLowerCase())}`
+      const target = `${workspaceUrl(slug)}/signup?email=${encodeURIComponent(email.trim().toLowerCase())}`
 
       return json({ url: target })
     }
@@ -130,8 +128,8 @@ serve(async (request) => {
       // The card is collected now and charged when the trial ends.
       payment_method_collection: 'always',
       allow_promotion_codes: true,
-      success_url: `${SITE_URL}/welcome?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${SITE_URL}/pricing?checkout=cancelled`,
+      success_url: `${siteUrl().origin}/welcome?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl().origin}/pricing?checkout=cancelled`,
     })
 
     await db

@@ -1,6 +1,9 @@
 // Email template for low nitrogen alerts
 export function lowNitrogenTemplate(data: {
   userName: string;
+  // The recipient's workspace, e.g. https://bar7.example.com. Links go there
+  // because the apex has no login.
+  workspaceUrl: string;
   tanks: Array<{ name: string; level: number; percentage: number }>;
 }): string {
   const tankRows = data.tanks.map(tank => `
@@ -42,7 +45,7 @@ export function lowNitrogenTemplate(data: {
           ${tankRows}
         </tbody>
       </table>
-      <a href="https://genehub.app/tanks" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">
+      <a href="${data.workspaceUrl}/tanks" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">
         View Tanks
       </a>
     </div>
@@ -50,7 +53,7 @@ export function lowNitrogenTemplate(data: {
       <p style="color: #6b7280; font-size: 14px; margin: 0;">
         You received this email because you have notifications enabled in GeneHub.
       </p>
-      <a href="https://genehub.app/settings" style="color: #3b82f6; font-size: 14px;">
+      <a href="${data.workspaceUrl}/settings" style="color: #3b82f6; font-size: 14px;">
         Manage notification preferences
       </a>
     </div>
@@ -63,6 +66,9 @@ export function lowNitrogenTemplate(data: {
 // Email template for low stock alerts
 export function lowStockTemplate(data: {
   userName: string;
+  // The recipient's workspace, e.g. https://bar7.example.com. Links go there
+  // because the apex has no login.
+  workspaceUrl: string;
   items: Array<{ name: string; quantity: number; threshold: number; category: string }>;
 }): string {
   const itemRows = data.items.map(item => `
@@ -106,7 +112,7 @@ export function lowStockTemplate(data: {
           ${itemRows}
         </tbody>
       </table>
-      <a href="https://genehub.app/medical-inventory" style="display: inline-block; background: #ef4444; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">
+      <a href="${data.workspaceUrl}/medical-inventory" style="display: inline-block; background: #ef4444; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">
         View Inventory
       </a>
     </div>
@@ -114,7 +120,7 @@ export function lowStockTemplate(data: {
       <p style="color: #6b7280; font-size: 14px; margin: 0;">
         You received this email because you have notifications enabled in GeneHub.
       </p>
-      <a href="https://genehub.app/settings" style="color: #3b82f6; font-size: 14px;">
+      <a href="${data.workspaceUrl}/settings" style="color: #3b82f6; font-size: 14px;">
         Manage notification preferences
       </a>
     </div>
@@ -127,6 +133,9 @@ export function lowStockTemplate(data: {
 // Email template for periodic reminder
 export function periodicReminderTemplate(data: {
   userName: string;
+  // The recipient's workspace, e.g. https://bar7.example.com. Links go there
+  // because the apex has no login.
+  workspaceUrl: string;
   tankCount: number;
   lowNitrogenCount: number;
   medicalItemCount: number;
@@ -166,7 +175,7 @@ export function periodicReminderTemplate(data: {
       <p style="color: #374151; font-size: 16px; line-height: 1.6;">
         Take a moment to verify your tank nitrogen levels and restock any low inventory items.
       </p>
-      <a href="https://genehub.app/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">
+      <a href="${data.workspaceUrl}/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">
         View Dashboard
       </a>
     </div>
@@ -174,7 +183,7 @@ export function periodicReminderTemplate(data: {
       <p style="color: #6b7280; font-size: 14px; margin: 0;">
         You received this email because you have periodic reminders enabled in GeneHub.
       </p>
-      <a href="https://genehub.app/settings" style="color: #3b82f6; font-size: 14px;">
+      <a href="${data.workspaceUrl}/settings" style="color: #3b82f6; font-size: 14px;">
         Manage notification preferences
       </a>
     </div>

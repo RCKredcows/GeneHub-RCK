@@ -12,7 +12,7 @@ supabase secrets set \
   STRIPE_SECRET_KEY=sk_live_... \
   STRIPE_PRICE_ID=price_... \
   STRIPE_WEBHOOK_SECRET=whsec_... \
-  PUBLIC_SITE_URL=https://genehub.app
+  PUBLIC_SITE_URL=https://<platform-domain>
 
 supabase functions deploy create-checkout-session --no-verify-jwt
 supabase functions deploy stripe-webhook --no-verify-jwt
@@ -23,6 +23,10 @@ supabase functions deploy send-invitation
 
 `send-invitation` also needs `RESEND_API_KEY`, which the notification functions
 already use.
+
+`PUBLIC_SITE_URL` is required, with no fallback: every function that builds a
+link fails without it. Links for members go to `<slug>.<its host>`, and email is
+sent from `notifications@<its host>`, so that domain must be verified in Resend.
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected by the platform.
 
