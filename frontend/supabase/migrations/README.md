@@ -1,4 +1,4 @@
-# Migrations 000–022
+# Migrations 000–023
 
 These build the multi-tenant schema on a **new, empty project**. That is the
 only way they are applied.
@@ -18,7 +18,7 @@ schema and replays from 000.
 ```bash
 cd frontend
 npx supabase link --project-ref <ref>
-npx supabase db push --dry-run   # 000–022, in order
+npx supabase db push --dry-run   # 000–023, in order
 npx supabase db push
 ```
 
@@ -64,3 +64,7 @@ writes to a `<tenant_id>/` folder. It drops by name the four policies RCK's
 bucket has, so it is a no-op on a fresh database in that respect. Adds
 `current_tenant_may_write()`, because `tenant_may_write(uuid)` is deliberately
 not callable by `authenticated` (017).
+
+**023** — adds `tenants.cancel_at`, which the Stripe webhook sets when a
+customer schedules a cancellation and clears if they resume, so Settings can
+say "Ends" instead of "Renews".

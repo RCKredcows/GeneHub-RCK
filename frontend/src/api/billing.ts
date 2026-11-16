@@ -22,6 +22,8 @@ export interface Billing {
   status: SubscriptionStatus | null;
   trialEndsAt: string | null;
   currentPeriodEnd: string | null;
+  /** Set when the customer has cancelled and the subscription runs out on this date. */
+  cancelAt: string | null;
   /** Comped workspaces are never charged and must never be locked out. */
   exempt: boolean;
   hasSubscription: boolean;
@@ -36,7 +38,7 @@ export function isInGoodStanding(billing: Billing): boolean {
 export async function fetchBilling(): Promise<Billing> {
   const { data, error } = await supabase
     .from('tenants')
-    .select('subscription_status, trial_ends_at, current_period_end, billing_exempt, stripe_customer_id')
+    .select('subscription_status, trial_ends_at, current_period_end, cancel_at, billing_exempt, stripe_customer_id')
     .maybeSingle();
 
   if (error) throw error;
@@ -45,6 +47,7 @@ export async function fetchBilling(): Promise<Billing> {
     status: (data?.subscription_status as SubscriptionStatus) ?? null,
     trialEndsAt: data?.trial_ends_at ?? null,
     currentPeriodEnd: data?.current_period_end ?? null,
+    cancelAt: data?.cancel_at ?? null,
     exempt: data?.billing_exempt ?? false,
     hasSubscription: Boolean(data?.stripe_customer_id),
   };

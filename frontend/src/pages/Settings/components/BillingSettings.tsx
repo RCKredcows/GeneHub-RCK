@@ -100,6 +100,9 @@ export default function BillingSettings({ role }: BillingSettingsProps) {
 
   const trialEnds = formatDate(billing.trialEndsAt);
   const renews = formatDate(billing.currentPeriodEnd);
+  // A cancelled subscription stays active (or trialing) until this date, so
+  // without it the rows below would promise a renewal or charge that never comes.
+  const ends = formatDate(billing.cancelAt);
   const attention = billing.status ? NEEDS_ATTENTION.includes(billing.status) : false;
 
   return (
@@ -127,7 +130,19 @@ export default function BillingSettings({ role }: BillingSettingsProps) {
           {attention && <span className="billing__flag">Needs attention</span>}
         </div>
 
-        {!billing.exempt && billing.status === 'trialing' && trialEnds && (
+        {!billing.exempt && ends && (billing.status === 'trialing' || billing.status === 'active') && (
+          <div className="settings__item">
+            <div className="settings__item-info">
+              <p className="settings__item-label">Ends</p>
+              <p className="settings__item-value">
+                {ends} — cancelled, so {billing.status === 'trialing' ? 'your card will not be charged' : 'it will not renew'}.
+                {role === 'owner' && ' You can resume it from Manage billing before then.'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!billing.exempt && !ends && billing.status === 'trialing' && trialEnds && (
           <div className="settings__item">
             <div className="settings__item-info">
               <p className="settings__item-label">Trial ends</p>
@@ -136,7 +151,7 @@ export default function BillingSettings({ role }: BillingSettingsProps) {
           </div>
         )}
 
-        {!billing.exempt && billing.status === 'active' && renews && (
+        {!billing.exempt && !ends && billing.status === 'active' && renews && (
           <div className="settings__item">
             <div className="settings__item-info">
               <p className="settings__item-label">Renews</p>

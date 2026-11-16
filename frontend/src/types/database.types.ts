@@ -887,6 +887,7 @@ export type Database = {
       tenants: {
         Row: {
           billing_exempt: boolean
+          cancel_at: string | null
           created_at: string
           current_period_end: string | null
           id: string
@@ -906,6 +907,7 @@ export type Database = {
         }
         Insert: {
           billing_exempt?: boolean
+          cancel_at?: string | null
           created_at?: string
           current_period_end?: string | null
           id?: string
@@ -925,6 +927,7 @@ export type Database = {
         }
         Update: {
           billing_exempt?: boolean
+          cancel_at?: string | null
           created_at?: string
           current_period_end?: string | null
           id?: string

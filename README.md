@@ -54,7 +54,7 @@ AWS holds no application data. Everything stateful is in Supabase.
 ├── frontend/                 The app, and its Supabase project
 │   ├── src/                  React source (see "Where things live")
 │   ├── supabase/
-│   │   ├── migrations/       000-022, the full schema history
+│   │   ├── migrations/       000-023, the full schema history
 │   │   ├── functions/        Edge functions (Deno)
 │   │   ├── tests/            SQL test suites for isolation and billing
 │   │   └── seed.sql
@@ -179,7 +179,7 @@ goes through a `SECURITY DEFINER` function.
 
 ## Database and migrations
 
-Migrations are in `frontend/supabase/migrations/` and numbered `000`-`022`.
+Migrations are in `frontend/supabase/migrations/` and numbered `000`-`023`.
 `000_schema.sql` is the baseline; the rest layer on tenancy, RLS, composite
 FKs, branding, signup, billing, memberships and hardening. The generated types
 are in `src/types/database.types.ts`.

@@ -121,6 +121,9 @@ serve(async (request) => {
             subscription_status: subscription.status,
             trial_ends_at: seconds(subscription.trial_end),
             current_period_end: seconds(subscription.current_period_end),
+            // Set when the customer cancels from the billing page, cleared if
+            // they resume before the date (023).
+            cancel_at: seconds(subscription.cancel_at),
             updated_at: new Date().toISOString(),
           })
           .eq('stripe_subscription_id', subscription.id)

@@ -109,7 +109,9 @@ serve(async (request) => {
       return json({ url: target })
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const params: Stripe.Checkout.SessionCreateParams & {
+      wallet_options: { link: { display: 'never' } }
+    } = {
       mode: 'subscription',
       // Stated explicitly rather than left to Stripe's dynamic selection,
       // which reads the dashboard's enabled methods and fails the session
@@ -130,6 +132,16 @@ serve(async (request) => {
       allow_promotion_codes: true,
       success_url: `${siteUrl().origin}/welcome?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl().origin}/pricing?checkout=cancelled`,
+      // Card only means card only: Link otherwise rides along on `card` and
+      // offers its bank payments ("Bank $5 back"), which settle over days, so
+      // a workspace could open on a payment that later fails.
+      wallet_options: { link: { display: 'never' } },
+    }
+
+    const session = await stripe.checkout.sessions.create(params, {
+      // wallet_options arrived in 2025-04-30.basil. Only this request asks for
+      // it; every other call, and the webhook's payloads, stay on acacia.
+      apiVersion: '2025-04-30.basil',
     })
 
     await db

@@ -5,7 +5,7 @@ and tests.
 
 ```
 supabase/
-├── migrations/   000-022: the full schema history (see migrations/README.md)
+├── migrations/   000-023: the full schema history (see migrations/README.md)
 ├── functions/    Edge functions (see functions/README.md)
 ├── tests/        SQL test suites, run in the SQL editor
 └── seed.sql
