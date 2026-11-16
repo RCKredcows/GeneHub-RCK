@@ -468,7 +468,7 @@ export default function Landing() {
               </p>
               <p>Already set up? Open the address your team gave you and sign in there.</p>
               <p>
-                Questions? <a href="mailto:daltongorham@gmail.com">daltongorham@gmail.com</a>
+                Questions? <a href="mailto:genehubllc0926@gmail.com">genehubllc0926@gmail.com</a>
               </p>
             </div>
           </nav>

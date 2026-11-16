@@ -18,7 +18,7 @@ const COMPANY = {
   // obligations belong to the entity, so the two are kept apart.
   legalName: 'RCK Genetics',
   productName: 'GeneHub',
-  contactEmail: 'daltongorham@gmail.com',
+  contactEmail: 'genehubllc0926@gmail.com',
   addressLines: ['431 Romance Rd', 'Romance, AR 72136'],
   governingLaw: 'the State of Arkansas, United States',
   lastUpdated: 'August 2, 2026',

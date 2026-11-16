@@ -12,7 +12,7 @@ import './styles.css'
 const SUPPORT = {
   legalName: 'RCK Genetics',
   productName: 'GeneHub',
-  email: 'daltongorham@gmail.com',
+  email: 'genehubllc0926@gmail.com',
   addressLines: ['431 Romance Rd', 'Romance, AR 72136'],
   hours: 'Monday to Friday, 8am to 5pm Central',
   responseTime: 'within one business day',

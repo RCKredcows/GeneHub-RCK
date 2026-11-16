@@ -418,7 +418,7 @@ export default function Settings({ user }: SettingsProps) {
             </div>
             <div className="settings__card">
               <a
-                href="mailto:daltongorham@gmail.com?subject=Bug Report - GeneHub&body=Please describe the bug:%0A%0ASteps to reproduce:%0A1.%0A2.%0A3.%0A%0AExpected behavior:%0A%0AActual behavior:%0A"
+                href="mailto:genehubllc0926@gmail.com?subject=Bug Report - GeneHub&body=Please describe the bug:%0A%0ASteps to reproduce:%0A1.%0A2.%0A3.%0A%0AExpected behavior:%0A%0AActual behavior:%0A"
                 className="settings__link-item"
               >
                 <FiAlertCircle className="settings__link-icon" />
@@ -428,7 +428,7 @@ export default function Settings({ user }: SettingsProps) {
                 </div>
               </a>
               <a
-                href="mailto:daltongorham@gmail.com?subject=Feature Suggestion - GeneHub&body=Feature description:%0A%0AWhy this would be helpful:%0A"
+                href="mailto:genehubllc0926@gmail.com?subject=Feature Suggestion - GeneHub&body=Feature description:%0A%0AWhy this would be helpful:%0A"
                 className="settings__link-item"
               >
                 <FiMessageSquare className="settings__link-icon" />
