@@ -15,16 +15,16 @@ import './styles.css'
 */
 
 const COMPANY = {
-  // The business is RCK Genetics; the product it sells is GeneHub. Obligations
+  // The business is GeneHub LLC; the product it sells is GeneHub. Obligations
   // and liability belong to the entity, so the two are kept apart.
-  legalName: 'RCK Genetics',
+  legalName: 'GeneHub LLC',
   productName: 'GeneHub',
   contactEmail: 'genehubllc0926@gmail.com',
   addressLines: ['431 Romance Rd', 'Romance, AR 72136'],
   governingLaw: 'the State of Arkansas, United States',
   price: '$20 per month',
   trialDays: 14,
-  lastUpdated: 'August 2, 2026',
+  lastUpdated: 'November 15, 2026',
 }
 
 export default function Terms() {

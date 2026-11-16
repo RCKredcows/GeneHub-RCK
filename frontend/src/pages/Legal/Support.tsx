@@ -10,7 +10,7 @@ import './styles.css'
 */
 
 const SUPPORT = {
-  legalName: 'RCK Genetics',
+  legalName: 'GeneHub LLC',
   productName: 'GeneHub',
   email: 'genehubllc0926@gmail.com',
   addressLines: ['431 Romance Rd', 'Romance, AR 72136'],
